@@ -1,5 +1,5 @@
 # Use uma imagem oficial do Python leve
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Evita que o Python crie arquivos .pyc e bufferize logs
 ENV PYTHONDONTWRITEBYTECODE 1
