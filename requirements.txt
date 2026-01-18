@@ -4,10 +4,13 @@ Django==6.0.1
 django-cors-headers==4.9.0
 djangorestframework==3.16.1
 drf-spectacular==0.29.0
+gunicorn==23.0.0
 inflection==0.5.1
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
-psycopg2-binary==2.9.11
+packaging==25.0
+psycopg==3.3.2
+psycopg-binary==3.3.2
 python-dotenv==1.2.1
 PyYAML==6.0.3
 referencing==0.37.0
@@ -15,3 +18,4 @@ rpds-py==0.30.0
 sqlparse==0.5.5
 tzdata==2025.3
 uritemplate==4.2.0
+whitenoise==6.11.0

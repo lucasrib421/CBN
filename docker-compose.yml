@@ -1,0 +1,27 @@
+services:
+  # Serviço do Banco de Dados
+  db:
+    image: postgres:15
+    container_name: postgres_local
+    restart: always
+    # Mapeia a porta 5432 do container para a 5432 do seu Windows
+    ports:
+      - "5433:5432"
+    # Lê as variáveis do seu arquivo .env para configurar a senha do banco
+    env_file:
+      - .env
+    # Salva os dados numa pasta local para não perder quando desligar
+    volumes:
+      - ./local_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # (Opcional) DBeaver ou Adminer web se quiser ver o banco sem instalar nada
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
