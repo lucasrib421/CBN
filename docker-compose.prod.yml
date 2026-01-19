@@ -1,7 +1,7 @@
 services:
   # --- O Porteiro (Traefik) ---
   traefik:
-    image: traefik:v2.10
+    image: traefik:v2.11
     container_name: traefik
     restart: always
     command:
@@ -15,6 +15,8 @@ services:
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myresolver.acme.email=seuemail@exemplo.com" # <--- TROQUE PELO SEU EMAIL
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      # ADICIONE ESTA LINHA ABAIXO PARA GARANTIR:
+      - "--providers.docker.apiVersion=1.44"
     ports:
       - "80:80"
       - "443:443"
@@ -44,7 +46,7 @@ services:
     build: .
     container_name: django_api
     restart: always
-    command: gunicorn setup.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - .:/app
       - ./media_prod:/app/media # Onde salvamos as imagens de upload
