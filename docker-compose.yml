@@ -25,3 +25,19 @@ services:
   #   restart: always
   #   ports:
   #     - 8080:8080
+  
+# Serviço da API (Django) - ESTAVA FALTANDO ISSO AQUI:
+  api:
+    build: . # Constrói a imagem usando o Dockerfile na pasta atual
+    container_name: django_api_local
+    # Comando para rodar o servidor de desenvolvimento
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app # Espelha sua pasta local para dentro do container (Hot reload)
+    ports:
+      - "8000:8000" # Libera o acesso no navegador
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy # Só liga o Django quando o Banco estiver pronto
