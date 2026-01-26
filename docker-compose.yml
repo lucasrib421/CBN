@@ -41,3 +41,22 @@ services:
     depends_on:
       db:
         condition: service_healthy # Só liga o Django quando o Banco estiver pronto
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cbn_frontend_dev
+    restart: always
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Truque vital: usa os módulos do Linux (container), não do Windows
+    ports:
+      - "5173:5173"
+    environment:
+      # Aponta para o backend local
+      - VITE_API_URL=http://localhost:8000
+      # Ajuda o hot-reload a funcionar melhor no Windows/WSL
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - api

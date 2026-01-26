@@ -111,3 +111,29 @@ docker compose logs -f api
 
 ## ☁️ Deploy (Produção)
 Para o ambiente de produção, utilizamos o arquivo docker-compose.prod.yml, que configura o Traefik (SSL automático) e o Gunicorn. Não use este arquivo localmente.
+
+## 🎨 Frontend (React + Vite)
+
+O projeto utiliza React com TypeScript, Vite e TailwindCSS. A estrutura de pastas segue uma divisão lógica entre Site Público e Painel Admin.
+
+### Estrutura de Pastas
+* `src/pages/website`: Páginas públicas (Home, Notícia, Categorias).
+* `src/pages/admin`: Páginas do painel de controle.
+* `src/components`: Componentes reutilizáveis (Botões, Inputs).
+* `src/services`: Configuração do Axios e chamadas à API.
+
+### Como rodar o Frontend
+O frontend sobe automaticamente junto com o `docker compose up -d`.
+* Acesse em: [http://localhost:5173](http://localhost:5173)
+
+### Comandos Úteis (Dentro do container ou pasta local)
+
+Caso precise instalar novas bibliotecas:
+1. Pare o docker: `docker compose down`
+2. Instale localmente: `cd frontend && npm install nome-da-lib`
+3. Suba novamente: `docker compose up -d --build`
+
+### Variáveis de Ambiente
+O frontend se comunica com a API através da variável `VITE_API_URL`.
+* **Dev:** Aponta automaticamente para `http://localhost:8000`.
+* **Prod:** É compilado apontando para `https://api.corrupcaobrasileira.com`.

@@ -1,10 +1,28 @@
-venv/
-__pycache__/
-*.pyc
+# --- Arquivos de Ambiente (CRÍTICO) ---
 .env
+.env.prod
+.env.local
+.env.*.local
+
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+venv/
 db.sqlite3
-.DS_Store
+media/
+staticfiles/
+
+# --- Node / React ---
+node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# --- Docker ---
+# Se você tiver dados de banco local mapeados
 local_pg_data/
 pg_data_prod/
-media_prod/
-letsencrypt/
+
+# --- IDEs ---
+.vscode/
+.idea/

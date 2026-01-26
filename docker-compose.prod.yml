@@ -65,6 +65,25 @@ services:
       # Redirecionar HTTP para HTTPS automaticamente é feito globalmente ou aqui, 
       # mas com Cloudflare 'Full', o tráfego já chega criptografado muitas vezes.
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: cbn_frontend_prod
+    restart: always
+    expose:
+      - "80" # O Nginx roda na porta 80 interna
+    labels:
+      - "traefik.enable=true"
+      # Regra: Entra no domínio principal (com ou sem www)
+      - "traefik.http.routers.frontend.rule=Host(`corrupcaobrasileira.com`) || Host(`www.corrupcaobrasileira.com`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+    depends_on:
+      - api
+
 networks:
   app_network:
     driver: bridge
+
+
