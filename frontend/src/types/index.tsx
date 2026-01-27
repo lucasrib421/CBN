@@ -25,7 +25,7 @@ export interface Category{
     id: number;
     name: string;
     slug: string; // O Slug pega o título, remove acentos, troca espaços por traços (-) e deixa tudo minúsculo
-    color?: String; // recebe em hexadecimal 
+    color?: string; // recebe em hexadecimal 
 }
 
 export interface Tag{
@@ -35,3 +35,55 @@ export interface Tag{
 }
 
 // --- Notícias ---
+
+export interface PostSummary{
+    id: number;
+    title: string;
+    subtitle: string;
+    slug: string;
+    cover_image?: Media;
+    author: Author;
+    categories: Category[]; // o []porque pode ter varias categorias
+    published_at: string;
+    reading_time?: number;
+    }
+
+    export interface PostDetail extends PostSummary{ // heranca é tudo que post sumary mais algumas coisas que tem no PostDetailSerializer
+        content: string;
+        tags: Tag[];
+        created_at: string;
+        updated_at: string;
+    }
+// --- Estrutura da Home ---
+
+    export interface HomeSectionItem{
+        id: number;
+        order: number;
+        post: PostSummary;
+    }
+
+    export interface HomeSection{
+        id: number;
+        title: string;
+        order: number;
+        section_type: 'HERO' | 'GRID' | 'LIST' | 'SIDEBAR';
+        items: HomeSectionItem[]; // Uma seção tem vários itens (notícias)
+    }
+
+// --- Menus ---
+
+export interface MenuItem{
+    id:number;
+    label: string;
+    url: string;
+    target?: '_self' | '_blank';
+    order: number;
+    children?: MenuItem[];
+}
+
+export interface Menu{
+    id: number;
+    title: string;
+    slug: string;
+    items: MenuItem[];
+}
