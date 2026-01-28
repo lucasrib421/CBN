@@ -6,7 +6,7 @@ function App() {
 
     <div className='App'>
       <Header></Header>
-
+      
       <main style={{ padding: '20px' }}>
         <BrowserRouter>
           <AppRoutes />
