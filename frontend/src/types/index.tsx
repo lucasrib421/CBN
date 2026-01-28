@@ -1,6 +1,6 @@
 //Aqui irei traduzir os dados json que o docker manda para o typescript ler, 
 // a estrutura de dados que vao ser traduzidos foi criada no:
-//  C:\Users\gabri\OneDrive\Documentos\VisualStudioCodigos\CBN\homeNews\serializers.py 
+//  CBN\homeNews\serializers.py 
 
 
 // --- Blocos Básicos ---
