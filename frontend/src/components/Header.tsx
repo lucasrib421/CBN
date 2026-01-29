@@ -41,22 +41,17 @@ useEffect(()=>{
             cursor: 'pointer'
           }}
         >
-          {/* Quadrado Vermelho */}
-          <div style={{ 
-            background: '#b91c1c', 
-            height: '100%',        
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 20px',     
-            marginRight: '15px',   
-            fontWeight: 'bold',
-            fontSize: '1.8rem',
-            letterSpacing: '-1px',
-            fontFamily: '"Courier", Gadget, sans-serif',
-          }}>
-            CBN
-          </div>
-
+          {/* 2. Imagem cbn*/}
+          <img 
+            src="/images/CBN_LOGO.png"  
+            alt="Logo CBN"
+            style={{ 
+              height: '60px', // Ajuste a altura conforme necessário
+              width: 'auto',  // Mantém a proporção correta
+              objectFit: 'contain',
+              marginRight: '15px' 
+            }} 
+          />
           {/* Texto Clone */}
           <span style={{ fontSize: '0.9rem', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>
             Corrupção Brasileira News
