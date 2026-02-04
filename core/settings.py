@@ -129,6 +129,13 @@ else:
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny', # Por padrão é aberto, fechamos nas Views específicas
+    ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 # CSRF: Permite que o painel admin funcione através do seu domínio HTTPS
@@ -136,3 +143,36 @@ CSRF_TRUSTED_ORIGINS = [
     'https://api.corrupcaobrasileira.com', 
     'https://corrupcaobrasileira.com'
 ]
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'ALGORITHM': 'RS256',  # <--- MUDAMOS PARA RS256 (Padrão do Keycloak)
+    
+    # URL onde o Django vai buscar a Chave Pública do Keycloak para validar a assinatura
+    'JWK_URL': "http://keycloak:8080/realms/cbn/protocol/openid-connect/certs",
+    
+    # Mapeamento de Usuário:
+    # O Keycloak manda o login no campo 'preferred_username'.
+    # O Django deve usar isso para buscar no campo 'username' do banco local.
+    'USER_ID_FIELD': 'username',
+    'USER_ID_CLAIM': 'preferred_username',
+    
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    
+    # O Keycloak geralmente coloca 'account' no audience, mas às vezes vem vazio.
+    # Se der erro de "Audience", deixe como None por enquanto.
+    'AUDIENCE': None, 
+    'ISSUER': None, # Ignora validação estrita de URL (evita erro Docker vs Localhost)
+}
+
+# --- ATENÇÃO: CONFIGURAÇÃO PRO KEYCLOAK (MODO INTELIGENTE) ---
+# O SimpleJWT precisa buscar as chaves públicas (JWK) do Keycloak para validar o token.
+# Como estamos em dev, vamos simplificar. Se quiser fazer a validação real RS256:
+SIMPLE_JWT['JWK_URL'] = "http://keycloak:8080/realms/cbn/protocol/openid-connect/certs"
+SIMPLE_JWT['ALGORITHM'] = 'RS256'
+SIMPLE_JWT['AUDIENCE'] = 'account' # O Keycloak geralmente coloca 'account' no audience
+SIMPLE_JWT['ISSUER'] = 'http://localhost:8080/realms/cbn'

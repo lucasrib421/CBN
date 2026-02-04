@@ -19,6 +19,28 @@ services:
       timeout: 5s
       retries: 5
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: cbn_keycloak
+    command: start-dev # Modo de desenvolvimento (não exige HTTPS)
+    environment:
+      # Configuração do Admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      
+      # Conexão com o Banco (Usa o mesmo container 'db')
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      
+      # Logs e Host
+      KC_LOG_LEVEL: INFO
+      KC_HOSTNAME: localhost
+    ports:
+      - "8080:8080" # Porta padrão do Keycloak
+    depends_on:
+      - db
   # (Opcional) DBeaver ou Adminer web se quiser ver o banco sem instalar nada
   # adminer:
   #   image: adminer

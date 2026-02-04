@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "oidc-client-ts": "^3.4.1",
+    "react-oidc-context": "^3.3.0"
+  }
+}

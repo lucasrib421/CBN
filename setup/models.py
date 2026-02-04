@@ -1,5 +1,6 @@
 from django.db import models
-
+import uuid
+from django.contrib.auth.models import User
 # Create your models here.
 
 class Media(models.Model):
@@ -65,32 +66,43 @@ class Role(models.Model):
         return self.name
 
 class Author(models.Model):
-    # Usamos o user_uuid como chave primária se a ideia for usar EXATAMENTE o ID do Keycloak aqui.
-    # Se for isso, lembre-se: você precisará fornecer esse ID na hora de salvar, o Django não vai gerar.
+    # ID INTERNO: Gera um UUID aleatório automaticamente para o banco local
     id = models.UUIDField(
         primary_key=True, 
-        editable=False, 
-        null=False, 
-        blank=False
-        )
+        default=uuid.uuid4, 
+        editable=False
+    )
 
-    # Campo para vincular ao Keycloak (separado do ID interno é mais seguro, mas pode usar o ID se preferir)
+    # VÍNCULO COM LOGIN: Liga este Autor ao sistema de autenticação do Django/Keycloak
+    # related_name='author_profile' permite usar: request.user.author_profile
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='author_profile',
+        null=True, 
+        blank=True
+    )
+
+    # ID DO KEYCLOAK: Campo opcional para armazenar o 'sub' (ID único) do Keycloak para auditoria
     keycloak_id = models.UUIDField(unique=True, null=True, blank=True)
 
     name = models.CharField(max_length=150, null=False, blank=False)
     bio = models.TextField(null=True, blank=True)
+    
     avatar = models.ForeignKey(
         Media, 
-        on_delete=models.SET_NULL, # Se apagar a mídia, o post fica sem foto (não é excluído)
+        on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
-        related_name='author_avatars' # Permite saber quais posts usam essa imagem
+        related_name='author_avatars'
     )
 
-    role = models.ForeignKey(Role, 
+    role = models.ForeignKey(
+        Role, 
         on_delete=models.PROTECT, 
-        null=True, blank=True
-        )
+        null=True, 
+        blank=True
+    )
 
     managed_categories = models.ManyToManyField(Category, blank=True)
 
