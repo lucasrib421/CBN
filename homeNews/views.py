@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
-from content.models import Category, Post, Tag
+from content.models import Category, Post, PostStatus, Tag
 from home.models import HomeSection
 from navigation.models import Menu
 from .serializers import (
@@ -32,7 +32,7 @@ class PostViewSet(viewsets.ReadOnlyModelViewSet):
         # Otimização CRÍTICA:
         # select_related: Busca FKs na mesma query (Autor, Categoria, Imagem)
         # prefetch_related: Busca M2M em query separada mas otimizada (Tags)
-        queryset = Post.objects.filter(status__name='PUBLISHED').select_related(
+        queryset = Post.objects.filter(status=PostStatus.PUBLISHED).select_related(
             'author', 'author__avatar', 'cover_image'
         ).prefetch_related(
             'categories', 'tags'

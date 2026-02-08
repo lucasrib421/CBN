@@ -2,7 +2,7 @@ import factory
 from django.contrib.auth.models import User
 
 from accounts.models import Author, Role
-from content.models import Category, Post, Status, Tag
+from content.models import Category, Post, PostStatus, Tag
 from home.models import HomeSection, HomeSectionItem
 from media_app.models import Media
 from navigation.models import Menu, MenuItem, Redirect
@@ -24,13 +24,6 @@ class MediaFactory(factory.django.DjangoModelFactory):
     title = factory.Sequence(lambda n: f'Mídia {n}')
     alt_text = factory.Faker('sentence', nb_words=4)
     image_type = 'image'
-
-
-class StatusFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Status
-
-    name = factory.Iterator(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
 
 
 class CategoryFactory(factory.django.DjangoModelFactory):
@@ -82,7 +75,7 @@ class PostFactory(factory.django.DjangoModelFactory):
     content = factory.Faker('text', max_nb_chars=500)
     cover_image = factory.SubFactory(MediaFactory)
     author = factory.SubFactory(AuthorFactory)
-    status = factory.SubFactory(StatusFactory, name='PUBLISHED')
+    status = PostStatus.PUBLISHED
 
     @factory.post_generation
     def categories(self, create, extracted, **kwargs):

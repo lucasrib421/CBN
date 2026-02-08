@@ -1,16 +1,10 @@
 from django.db import models
 
 
-class Status(models.Model):
-    name = models.CharField(max_length=100, null=False, blank=False)
-
-    class Meta:
-        ordering = ['name']
-        db_table = 'status'
-
-    def __str__(self):
-        return self.name
-
+class PostStatus(models.TextChoices):
+    DRAFT = 'DRAFT', 'Rascunho'
+    PUBLISHED = 'PUBLISHED', 'Publicado'
+    ARCHIVED = 'ARCHIVED', 'Arquivado'
 
 class Category(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)
@@ -53,7 +47,11 @@ class Post(models.Model):
     author = models.ForeignKey('accounts.Author', on_delete=models.CASCADE, null=False, blank=False)
     categories = models.ManyToManyField('content.Category', blank=False)
     tags = models.ManyToManyField('content.Tag', blank=True)
-    status = models.ForeignKey('content.Status', on_delete=models.PROTECT, null=False, blank=False)
+    status = models.CharField(
+        max_length=20,
+        choices=PostStatus.choices,
+        default=PostStatus.DRAFT,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

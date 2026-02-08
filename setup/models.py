@@ -1,12 +1,11 @@
 from accounts.models import Author, Role
-from content.models import Category, Post, Status, Tag
+from content.models import Category, Post, Tag
 from home.models import HomeSection, HomeSectionItem
 from media_app.models import Media
 from navigation.models import Menu, MenuItem, Redirect
 
 __all__ = [
     'Media',
-    'Status',
     'Category',
     'Tag',
     'Role',

@@ -1,20 +1,5 @@
 [
   {
-    "model": "content.status",
-    "pk": 1,
-    "fields": { "name": "DRAFT" }
-  },
-  {
-    "model": "content.status",
-    "pk": 2,
-    "fields": { "name": "PUBLISHED" }
-  },
-  {
-    "model": "content.status",
-    "pk": 3,
-    "fields": { "name": "ARCHIVED" }
-  },
-  {
     "model": "content.category",
     "pk": 1,
     "fields": { "name": "Política", "slug": "politica", "color": "#DC2626", "is_active": true }
