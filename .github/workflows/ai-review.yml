@@ -1,0 +1,33 @@
+name: 🤖 Gemini Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize] # Roda ao abrir ou atualizar o PR
+
+permissions:
+  contents: read
+  pull-requests: write # Permissão para comentar no PR
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Instalar Dependências
+        run: |
+          pip install google-generativeai PyGithub
+
+      - name: Rodar Revisão com IA
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python scripts/ai_reviewer.py
