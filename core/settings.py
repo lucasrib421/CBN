@@ -36,13 +36,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     # Third party apps
     'rest_framework',
     'django_filters',
     'corsheaders',
     'drf_spectacular',
-
     # Local apps
     'homeNews',
     'painelControle',
@@ -51,8 +49,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware", # Arquivos estáticos
-    'corsheaders.middleware.CorsMiddleware', # CORS vem antes de tudo possível
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Arquivos estáticos
+    'corsheaders.middleware.CorsMiddleware',  # CORS vem antes de tudo possível
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -61,7 +59,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'core.urls' # Certifique-se que sua pasta principal se chama 'core' mesmo
+ROOT_URLCONF = 'core.urls'  # Certifique-se que sua pasta principal se chama 'core' mesmo
 
 TEMPLATES = [
     {
@@ -96,16 +94,24 @@ DATABASES = {
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
 
 # Internationalization
-LANGUAGE_CODE = 'pt-br' # Mudei para Português
-TIME_ZONE = 'America/Sao_Paulo' # Mudei para Horário de Brasília
+LANGUAGE_CODE = 'pt-br'  # Mudei para Português
+TIME_ZONE = 'America/Sao_Paulo'  # Mudei para Horário de Brasília
 USE_I18N = True
 USE_TZ = True
 
@@ -113,7 +119,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media Files (Uploads de imagens)
 MEDIA_URL = '/media/'
@@ -133,7 +139,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny', # Por padrão é aberto, fechamos nas Views específicas
+        'rest_framework.permissions.AllowAny',  # Por padrão é aberto, fechamos nas Views específicas
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
@@ -157,23 +163,21 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'ALGORITHM': 'RS256',  # <--- MUDAMOS PARA RS256 (Padrão do Keycloak)
-    
     # URL onde o Django vai buscar a Chave Pública do Keycloak para validar a assinatura
     'JWK_URL': os.getenv(
         'JWT_JWK_URL',
-        "http://keycloak:8080/realms/cbn/protocol/openid-connect/certs",
+        'http://keycloak:8080/realms/cbn/protocol/openid-connect/certs',
     ),
-    
     # Mapeamento de Usuário:
     # O Keycloak manda o login no campo 'preferred_username'.
     # O Django deve usar isso para buscar no campo 'username' do banco local.
     'USER_ID_FIELD': 'username',
     'USER_ID_CLAIM': 'preferred_username',
-    
     'AUTH_HEADER_TYPES': ('Bearer',),
-    
     # O Keycloak geralmente coloca 'account' no audience, mas às vezes vem vazio.
     # Se der erro de "Audience", deixe como None por enquanto.
     'AUDIENCE': 'account',
-    'ISSUER': os.getenv('JWT_ISSUER'), # Ignora validação estrita de URL (evita erro Docker vs Localhost)
+    'ISSUER': os.getenv(
+        'JWT_ISSUER'
+    ),  # Ignora validação estrita de URL (evita erro Docker vs Localhost)
 }

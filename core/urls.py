@@ -7,20 +7,17 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 urlpatterns = [
     # 1. Rota do Painel Administrativo (Django Admin)
     path('admin/', admin.site.urls),
-
     # 2. Rota PRINCIPAL da API (Tudo do homeNews entra aqui)
     # Ex: localhost:8000/api/posts/
     path('api/', include('homeNews.urls')),
-
     # 2.1 Rotas do painel de controle
     path('api/painel/', include('painelControle.urls')),
-
     # 3. Rota do App Setup (Se você for usar algo de lá, senão é opcional)
     path('setup-rotas/', include('setup.urls')),
-
     # 4. Documentação da API (drf-spectacular)
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path(
+        'api/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'
+    ),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

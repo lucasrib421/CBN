@@ -21,34 +21,34 @@ class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
 
-    username = factory.Sequence(lambda n: f"user{n}")
-    email = factory.LazyAttribute(lambda o: f"{o.username}@example.com")
+    username = factory.Sequence(lambda n: f'user{n}')
+    email = factory.LazyAttribute(lambda o: f'{o.username}@example.com')
 
 
 class MediaFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Media
 
-    file = factory.django.FileField(filename="image.jpg")
-    title = factory.Sequence(lambda n: f"Mídia {n}")
-    alt_text = factory.Faker("sentence", nb_words=4)
-    image_type = "image"
+    file = factory.django.FileField(filename='image.jpg')
+    title = factory.Sequence(lambda n: f'Mídia {n}')
+    alt_text = factory.Faker('sentence', nb_words=4)
+    image_type = 'image'
 
 
 class StatusFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Status
 
-    name = factory.Iterator(["DRAFT", "PUBLISHED", "ARCHIVED"])
+    name = factory.Iterator(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
 
 
 class CategoryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Category
 
-    name = factory.Sequence(lambda n: f"Categoria {n}")
-    slug = factory.Sequence(lambda n: f"categoria-{n}")
-    color = "#DC2626"
+    name = factory.Sequence(lambda n: f'Categoria {n}')
+    slug = factory.Sequence(lambda n: f'categoria-{n}')
+    color = '#DC2626'
     is_active = True
 
 
@@ -56,17 +56,17 @@ class TagFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Tag
 
-    name = factory.Sequence(lambda n: f"Tag {n}")
-    slug = factory.Sequence(lambda n: f"tag-{n}")
+    name = factory.Sequence(lambda n: f'Tag {n}')
+    slug = factory.Sequence(lambda n: f'tag-{n}')
 
 
 class RoleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Role
 
-    name = factory.Sequence(lambda n: f"Role {n}")
-    slug = factory.Sequence(lambda n: f"role-{n}")
-    description = factory.Faker("sentence")
+    name = factory.Sequence(lambda n: f'Role {n}')
+    slug = factory.Sequence(lambda n: f'role-{n}')
+    description = factory.Faker('sentence')
 
 
 class AuthorFactory(factory.django.DjangoModelFactory):
@@ -74,9 +74,9 @@ class AuthorFactory(factory.django.DjangoModelFactory):
         model = Author
 
     user = factory.SubFactory(UserFactory)
-    keycloak_id = factory.Faker("uuid4")
-    name = factory.Faker("name")
-    bio = factory.Faker("paragraph")
+    keycloak_id = factory.Faker('uuid4')
+    name = factory.Faker('name')
+    bio = factory.Faker('paragraph')
     avatar = factory.SubFactory(MediaFactory)
     role = factory.SubFactory(RoleFactory)
 
@@ -85,13 +85,13 @@ class PostFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Post
 
-    title = factory.Sequence(lambda n: f"Post {n}")
-    subtitle = factory.Faker("sentence")
-    slug = factory.Sequence(lambda n: f"post-{n}")
-    content = factory.Faker("text", max_nb_chars=500)
+    title = factory.Sequence(lambda n: f'Post {n}')
+    subtitle = factory.Faker('sentence')
+    slug = factory.Sequence(lambda n: f'post-{n}')
+    content = factory.Faker('text', max_nb_chars=500)
     cover_image = factory.SubFactory(MediaFactory)
     author = factory.SubFactory(AuthorFactory)
-    status = factory.SubFactory(StatusFactory, name="PUBLISHED")
+    status = factory.SubFactory(StatusFactory, name='PUBLISHED')
 
     @factory.post_generation
     def categories(self, create, extracted, **kwargs):
@@ -116,8 +116,8 @@ class HomeSectionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = HomeSection
 
-    title = factory.Sequence(lambda n: f"Seção {n}")
-    section_type = "HIGHLIGHTS"
+    title = factory.Sequence(lambda n: f'Seção {n}')
+    section_type = 'HIGHLIGHTS'
     order = factory.Sequence(lambda n: n + 1)
     is_active = True
 
@@ -135,8 +135,8 @@ class MenuFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Menu
 
-    title = factory.Sequence(lambda n: f"Menu {n}")
-    slug = factory.Sequence(lambda n: f"menu-{n}")
+    title = factory.Sequence(lambda n: f'Menu {n}')
+    slug = factory.Sequence(lambda n: f'menu-{n}')
     is_active = True
 
 
@@ -146,10 +146,10 @@ class MenuItemFactory(factory.django.DjangoModelFactory):
 
     menu = factory.SubFactory(MenuFactory)
     parent = None
-    label = factory.Sequence(lambda n: f"Item {n}")
-    url = factory.Sequence(lambda n: f"/item-{n}")
+    label = factory.Sequence(lambda n: f'Item {n}')
+    url = factory.Sequence(lambda n: f'/item-{n}')
     order = factory.Sequence(lambda n: n + 1)
-    target = "_self"
+    target = '_self'
     is_active = True
 
 
@@ -157,7 +157,7 @@ class RedirectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Redirect
 
-    old_path = factory.Sequence(lambda n: f"/old-{n}")
-    new_path = factory.Sequence(lambda n: f"/new-{n}")
-    url_type = "permanent"
+    old_path = factory.Sequence(lambda n: f'/old-{n}')
+    new_path = factory.Sequence(lambda n: f'/new-{n}')
+    url_type = 'permanent'
     is_active = True

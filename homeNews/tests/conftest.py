@@ -1,7 +1,13 @@
 import pytest
 from rest_framework.test import APIClient
 
-from setup.tests.factories import HomeSectionFactory, HomeSectionItemFactory, MenuFactory, MenuItemFactory, PostFactory
+from setup.tests.factories import (
+    HomeSectionFactory,
+    HomeSectionItemFactory,
+    MenuFactory,
+    MenuItemFactory,
+    PostFactory,
+)
 
 
 @pytest.fixture
@@ -23,6 +29,6 @@ def home_section_with_item(db, public_post):
 
 @pytest.fixture
 def active_menu(db):
-    menu = MenuFactory(title="Menu Principal", slug="menu-principal")
-    MenuItemFactory(menu=menu, label="Política", url="/politica", order=1)
+    menu = MenuFactory(title='Menu Principal', slug='menu-principal')
+    MenuItemFactory(menu=menu, label='Política', url='/politica', order=1)
     return menu
