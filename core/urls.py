@@ -12,6 +12,9 @@ urlpatterns = [
     # Ex: localhost:8000/api/posts/
     path('api/', include('homeNews.urls')),
 
+    # 2.1 Rotas do painel de controle
+    path('api/painel/', include('painelControle.urls')),
+
     # 3. Rota do App Setup (Se você for usar algo de lá, senão é opcional)
     path('setup-rotas/', include('setup.urls')),
 

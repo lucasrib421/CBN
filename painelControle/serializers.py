@@ -7,8 +7,8 @@ from setup.models import Media, Category, Tag, Post, HomeSection, HomeSectionIte
 class MediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Media
-        fields = ['id', 'file', 'alt_text', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ['id', 'file', 'alt_text', 'uploaded_at']
+        read_only_fields = ['id', 'uploaded_at']
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

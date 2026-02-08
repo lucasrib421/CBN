@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     # Local apps
     'homeNews',
+    'painelControle',
     'setup',
 ]
 
@@ -117,10 +118,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # --- CONFIGURAÇÃO DE DOMÍNIO E CORS ---
 
 # Se DEBUG for True (Local), libera tudo. Se for False (Prod), restringe.
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+if not DEBUG:
     # Aqui entrará o domínio do seu Front-end React quando ele existir
     CORS_ALLOWED_ORIGINS = [
         "https://corrupcaobrasileira.com",
@@ -153,7 +152,10 @@ SIMPLE_JWT = {
     'ALGORITHM': 'RS256',  # <--- MUDAMOS PARA RS256 (Padrão do Keycloak)
     
     # URL onde o Django vai buscar a Chave Pública do Keycloak para validar a assinatura
-    'JWK_URL': "http://keycloak:8080/realms/cbn/protocol/openid-connect/certs",
+    'JWK_URL': os.getenv(
+        'JWT_JWK_URL',
+        "http://keycloak:8080/realms/cbn/protocol/openid-connect/certs",
+    ),
     
     # Mapeamento de Usuário:
     # O Keycloak manda o login no campo 'preferred_username'.
@@ -165,14 +167,6 @@ SIMPLE_JWT = {
     
     # O Keycloak geralmente coloca 'account' no audience, mas às vezes vem vazio.
     # Se der erro de "Audience", deixe como None por enquanto.
-    'AUDIENCE': None, 
-    'ISSUER': None, # Ignora validação estrita de URL (evita erro Docker vs Localhost)
+    'AUDIENCE': 'account',
+    'ISSUER': os.getenv('JWT_ISSUER'), # Ignora validação estrita de URL (evita erro Docker vs Localhost)
 }
-
-# --- ATENÇÃO: CONFIGURAÇÃO PRO KEYCLOAK (MODO INTELIGENTE) ---
-# O SimpleJWT precisa buscar as chaves públicas (JWK) do Keycloak para validar o token.
-# Como estamos em dev, vamos simplificar. Se quiser fazer a validação real RS256:
-SIMPLE_JWT['JWK_URL'] = "http://keycloak:8080/realms/cbn/protocol/openid-connect/certs"
-SIMPLE_JWT['ALGORITHM'] = 'RS256'
-SIMPLE_JWT['AUDIENCE'] = 'account' # O Keycloak geralmente coloca 'account' no audience
-SIMPLE_JWT['ISSUER'] = 'http://localhost:8080/realms/cbn'

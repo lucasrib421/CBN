@@ -9,7 +9,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 from setup.models import Media, Category, Tag, Post, HomeSection, HomeSectionItem, Menu, MenuItem
-from homeNews.serializers import (
+from painelControle.serializers import (
     MediaSerializer, CategorySerializer, TagSerializer, PostSerializer, 
     HomeSectionSerializer, HomeSectionItemSerializer, MenuSerializer, MenuItemSerializer
 )
@@ -42,7 +42,7 @@ class BaseViewSet(viewsets.ModelViewSet):
         elif self.action in ['create']:
             return [IsAuthenticated()]
         elif self.action in ['update', 'partial_update']:
-            return [IsAuthorOrReadOnly()]
+            return [IsAuthenticated()]
         elif self.action in ['destroy']:
             return [IsAdminUser()]
         return super().get_permissions()
@@ -61,8 +61,7 @@ class BaseViewSet(viewsets.ModelViewSet):
         """
         Hook para ações durante a atualização
         """
-        # Exemplo: Registra quem modificou
-        serializer.save(updated_by=self.request.user)
+        serializer.save()
 
 
 
@@ -72,6 +71,5 @@ class MediaViewSet(BaseViewSet):
     queryset = Media.objects.all()
     serializer_class = MediaSerializer
     search_fields = ['alt_text']
-    ordering_fields = ['created_at']
-    ordering = ['-created_at']
-
+    ordering_fields = ['uploaded_at']
+    ordering = ['-uploaded_at']
