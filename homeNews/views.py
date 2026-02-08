@@ -71,11 +71,11 @@ class HomeViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return HomeSection.objects.filter(is_active=True).prefetch_related(
-            'homesectionitem_set', # Pega os itens da seção
-            'homesectionitem_set__post', # Pega o post de cada item
-            'homesectionitem_set__post__author', # Pega o autor do post
-            'homesectionitem_set__post__cover_image', # Pega a imagem
-            'homesectionitem_set__post__categories' # Pega as categorias
+            'items', # Pega os itens da seção
+            'items__post', # Pega o post de cada item
+            'items__post__author', # Pega o autor do post
+            'items__post__cover_image', # Pega a imagem
+            'items__post__categories' # Pega as categorias
         ).order_by('order')
 
 class MenuViewSet(viewsets.ReadOnlyModelViewSet):

@@ -28,7 +28,7 @@ class Author(models.Model):
         blank=True,
     )
     keycloak_id = models.UUIDField(unique=True, null=True, blank=True)
-    name = models.CharField(max_length=150, null=False, blank=False)
+    name = models.CharField(max_length=150, null=False, blank=False, db_index=True)
     bio = models.TextField(null=True, blank=True)
     avatar = models.ForeignKey(
         'media_app.Media',
@@ -43,6 +43,7 @@ class Author(models.Model):
     class Meta:
         ordering = ['name']
         db_table = 'author'
+        verbose_name_plural = 'Autores'
 
     def __str__(self):
         return self.name

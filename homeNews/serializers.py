@@ -80,7 +80,7 @@ class HomeSectionItemSerializer(serializers.ModelSerializer):
 class HomeSectionSerializer(serializers.ModelSerializer):
     # Trazemos os itens dessa seção
     # O source='homesectionitem_set' pega o relacionamento reverso (ou related_name se tiver definido)
-    items = HomeSectionItemSerializer(source='homesectionitem_set', many=True, read_only=True)
+    items = HomeSectionItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = HomeSection
