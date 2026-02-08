@@ -10,10 +10,11 @@ services:
       - "--providers.docker.exposedbydefault=false" # Só expõe quem pedir explicitamente
       - "--entrypoints.web.address=:80" # Porta HTTP
       - "--entrypoints.websecure.address=:443" # Porta HTTPS
+      - "--ping=true"
       # Configuração do Let's Encrypt (Certificado Automático)
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=seuemail@exemplo.com" # <--- TROQUE PELO SEU EMAIL
+      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       # ADICIONE ESTA LINHA ABAIXO PARA GARANTIR:
       - "--providers.docker.apiVersion=1.44"
@@ -25,6 +26,13 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro" # Permissão para ler o Docker
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    mem_limit: 256m
+    cpus: 0.50
 
   # --- O Banco de Dados (Postgres) ---
   db:
@@ -40,6 +48,13 @@ services:
     networks:
       - app_network
     # Note: SEM "ports". Ninguém acessa o banco de fora, só o Django.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 512m
+    cpus: 1.00
 
   # --- O Backend (Django) ---
   api:
@@ -53,13 +68,21 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "python manage.py check --deploy || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    mem_limit: 512m
+    cpus: 1.00
     labels:
       - "traefik.enable=true"
-      # Regra: Se o domínio for api.seudominio.com, mande pra cá
-      - "traefik.http.routers.api.rule=Host(`api.seudominio.com.br`)" # <--- TROQUE PELO SEU DOMÍNIO
+      # Regra: domínio da API vindo de variável de ambiente
+      - "traefik.http.routers.api.rule=Host(`${API_HOST}`)"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
       # Redirecionar HTTP para HTTPS automaticamente é feito globalmente ou aqui, 
@@ -69,21 +92,32 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ${VITE_API_URL}
     container_name: cbn_frontend_prod
     restart: always
     expose:
-      - "80" # O Nginx roda na porta 80 interna
+      - "8080" # O Nginx roda na porta 8080 interna
     labels:
       - "traefik.enable=true"
       # Regra: Entra no domínio principal (com ou sem www)
-      - "traefik.http.routers.frontend.rule=Host(`corrupcaobrasileira.com`) || Host(`www.corrupcaobrasileira.com`)"
+      - "traefik.http.routers.frontend.rule=Host(`${FRONTEND_HOST}`) || Host(`${FRONTEND_WWW_HOST}`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.services.frontend.loadbalancer.server.port=8080"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    mem_limit: 256m
+    cpus: 0.50
 
 networks:
   app_network:
     driver: bridge
-
-

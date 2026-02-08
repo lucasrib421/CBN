@@ -21,6 +21,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia o código do projeto
 COPY . .
 
+# Executa com usuário não-root
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser && chown -R appuser:appgroup /app
+USER appuser
+
 # Expõe a porta 8000
 EXPOSE 8000
 

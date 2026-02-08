@@ -22,6 +22,11 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
+def _split_env_list(var_name):
+    value = os.getenv(var_name, '')
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -120,11 +125,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Se DEBUG for True (Local), libera tudo. Se for False (Prod), restringe.
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 if not DEBUG:
-    # Aqui entrará o domínio do seu Front-end React quando ele existir
-    CORS_ALLOWED_ORIGINS = [
-        "https://corrupcaobrasileira.com",
-        "https://www.corrupcaobrasileira.com",
-    ]
+    CORS_ALLOWED_ORIGINS = _split_env_list('CORS_ALLOWED_ORIGINS')
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -138,10 +139,16 @@ REST_FRAMEWORK = {
 }
 
 # CSRF: Permite que o painel admin funcione através do seu domínio HTTPS
-CSRF_TRUSTED_ORIGINS = [
-    'https://api.corrupcaobrasileira.com', 
-    'https://corrupcaobrasileira.com'
-]
+CSRF_TRUSTED_ORIGINS = _split_env_list('CSRF_TRUSTED_ORIGINS')
+
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 from datetime import timedelta
 

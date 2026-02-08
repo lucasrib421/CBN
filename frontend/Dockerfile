@@ -13,6 +13,11 @@ RUN npm install
 # Copia o restante do código
 COPY . .
 
+RUN chown -R node:node /app
+
+# Executa como usuário não-root
+USER node
+
 # Expõe a porta padrão do Vite
 EXPOSE 5173
 
