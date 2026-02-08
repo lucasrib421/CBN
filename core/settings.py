@@ -42,6 +42,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     # Local apps
+    'content',
+    'accounts',
+    'media_app',
+    'navigation',
+    'home',
     'homeNews',
     'painelControle',
     'setup',

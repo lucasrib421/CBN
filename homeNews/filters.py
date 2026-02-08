@@ -1,5 +1,5 @@
 import django_filters
-from setup.models import Post
+from content.models import Post
 
 class PostFilter(django_filters.FilterSet):
     # Permite buscar parte do título (ex: ?title=eleicoes)

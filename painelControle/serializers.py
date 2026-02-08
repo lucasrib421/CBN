@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from setup.models import Media, Category, Tag, Post, HomeSection, HomeSectionItem, Menu, MenuItem
+from content.models import Category, Post, Tag
+from home.models import HomeSection, HomeSectionItem
+from media_app.models import Media
+from navigation.models import Menu, MenuItem
 
 # Serializer que devem ser feitos
 # Media, Category, Tag, Post, HomeSection, HomeSectionItem, Menu, MenuItem

@@ -1,111 +1,111 @@
 [
   {
-    "model": "setup.status",
+    "model": "content.status",
     "pk": 1,
     "fields": { "name": "DRAFT" }
   },
   {
-    "model": "setup.status",
+    "model": "content.status",
     "pk": 2,
     "fields": { "name": "PUBLISHED" }
   },
   {
-    "model": "setup.status",
+    "model": "content.status",
     "pk": 3,
     "fields": { "name": "ARCHIVED" }
   },
   {
-    "model": "setup.category",
+    "model": "content.category",
     "pk": 1,
     "fields": { "name": "Política", "slug": "politica", "color": "#DC2626", "is_active": true }
   },
   {
-    "model": "setup.category",
+    "model": "content.category",
     "pk": 2,
     "fields": { "name": "Economia", "slug": "economia", "color": "#2563EB", "is_active": true }
   },
   {
-    "model": "setup.category",
+    "model": "content.category",
     "pk": 3,
     "fields": { "name": "Judiciário", "slug": "judiciario", "color": "#7C3AED", "is_active": true }
   },
   {
-    "model": "setup.category",
+    "model": "content.category",
     "pk": 4,
     "fields": { "name": "Investigações", "slug": "investigacoes", "color": "#D97706", "is_active": true }
   },
   {
-    "model": "setup.category",
+    "model": "content.category",
     "pk": 5,
     "fields": { "name": "Internacional", "slug": "internacional", "color": "#059669", "is_active": true }
   },
   {
-    "model": "setup.tag",
+    "model": "content.tag",
     "pk": 1,
     "fields": { "name": "Corrupção", "slug": "corrupcao" }
   },
   {
-    "model": "setup.tag",
+    "model": "content.tag",
     "pk": 2,
     "fields": { "name": "Lavagem de Dinheiro", "slug": "lavagem-de-dinheiro" }
   },
   {
-    "model": "setup.tag",
+    "model": "content.tag",
     "pk": 3,
     "fields": { "name": "Licitação", "slug": "licitacao" }
   },
   {
-    "model": "setup.tag",
+    "model": "content.tag",
     "pk": 4,
     "fields": { "name": "Congresso", "slug": "congresso" }
   },
   {
-    "model": "setup.tag",
+    "model": "content.tag",
     "pk": 5,
     "fields": { "name": "STF", "slug": "stf" }
   },
   {
-    "model": "setup.role",
+    "model": "accounts.role",
     "pk": 1,
     "fields": { "name": "Editor Chefe", "slug": "editor-chefe", "description": "Responsável pela linha editorial e aprovação final de matérias" }
   },
   {
-    "model": "setup.role",
+    "model": "accounts.role",
     "pk": 2,
     "fields": { "name": "Repórter", "slug": "reporter", "description": "Responsável pela apuração e escrita de matérias" }
   },
   {
-    "model": "setup.role",
+    "model": "accounts.role",
     "pk": 3,
     "fields": { "name": "Colunista", "slug": "colunista", "description": "Autor de colunas de opinião" }
   },
   {
-    "model": "setup.menu",
+    "model": "navigation.menu",
     "pk": 1,
     "fields": { "title": "Menu Principal", "slug": "menu-principal", "is_active": true, "created_at": "2025-01-01T00:00:00Z" }
   },
   {
-    "model": "setup.menuitem",
+    "model": "navigation.menuitem",
     "pk": 1,
     "fields": { "menu": 1, "parent": null, "label": "Política", "url": "/politica", "order": 1, "target": null, "is_active": true }
   },
   {
-    "model": "setup.menuitem",
+    "model": "navigation.menuitem",
     "pk": 2,
     "fields": { "menu": 1, "parent": null, "label": "Economia", "url": "/economia", "order": 2, "target": null, "is_active": true }
   },
   {
-    "model": "setup.menuitem",
+    "model": "navigation.menuitem",
     "pk": 3,
     "fields": { "menu": 1, "parent": null, "label": "Judiciário", "url": "/judiciario", "order": 3, "target": null, "is_active": true }
   },
   {
-    "model": "setup.menuitem",
+    "model": "navigation.menuitem",
     "pk": 4,
     "fields": { "menu": 1, "parent": null, "label": "Investigações", "url": "/investigacoes", "order": 4, "target": null, "is_active": true }
   },
   {
-    "model": "setup.menuitem",
+    "model": "navigation.menuitem",
     "pk": 5,
     "fields": { "menu": 1, "parent": null, "label": "Internacional", "url": "/internacional", "order": 5, "target": null, "is_active": true }
   }

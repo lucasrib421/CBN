@@ -3,7 +3,9 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
-from setup.models import Post, Category, HomeSection, Menu, Tag
+from content.models import Category, Post, Tag
+from home.models import HomeSection
+from navigation.models import Menu
 from .serializers import (
     PostListSerializer, 
     PostDetailSerializer, 
