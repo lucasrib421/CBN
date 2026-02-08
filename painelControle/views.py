@@ -10,7 +10,7 @@ from datetime import timedelta
 
 from setup.models import Media, Category, Tag, Post, HomeSection, HomeSectionItem, Menu, MenuItem
 from painelControle.serializers import (
-    MediaSerializer, CategorySerializer, TagSerializer, PostSerializer, 
+    PainelMediaSerializer, CategorySerializer, TagSerializer, PostSerializer, 
     HomeSectionSerializer, HomeSectionItemSerializer, MenuSerializer, MenuItemSerializer
 )
 
@@ -69,7 +69,7 @@ class BaseViewSet(viewsets.ModelViewSet):
 
 class MediaViewSet(BaseViewSet):
     queryset = Media.objects.all()
-    serializer_class = MediaSerializer
+    serializer_class = PainelMediaSerializer
     search_fields = ['alt_text']
     ordering_fields = ['uploaded_at']
     ordering = ['-uploaded_at']

@@ -105,7 +105,7 @@ class MenuSerializer(serializers.ModelSerializer):
         model = Menu
         fields = ['id', 'title', 'slug', 'items']
 
-    def get_items(self, obj):
+    def get_items(self, obj) -> list[dict[str, object]]:
         # Filtra apenas itens de primeiro nível (parent=None)
         root_items = obj.menuitem_set.filter(parent__isnull=True, is_active=True).order_by('order')
         return MenuItemSerializer(root_items, many=True).data

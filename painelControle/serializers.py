@@ -4,7 +4,7 @@ from setup.models import Media, Category, Tag, Post, HomeSection, HomeSectionIte
 # Serializer que devem ser feitos
 # Media, Category, Tag, Post, HomeSection, HomeSectionItem, Menu, MenuItem
 
-class MediaSerializer(serializers.ModelSerializer):
+class PainelMediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Media
         fields = ['id', 'file', 'alt_text', 'uploaded_at']
@@ -26,7 +26,7 @@ class PostSerializer(serializers.ModelSerializer):
     author_info = serializers.PrimaryKeyRelatedField(source='author', read_only=True)
     categories_info = serializers.StringRelatedField(many=True, source='categories', read_only=True)
     tags_info = serializers.StringRelatedField(many=True, source='tags', read_only=True)
-    cover_image_info = MediaSerializer(source='cover_image', read_only=True)
+    cover_image_info = PainelMediaSerializer(source='cover_image', read_only=True)
 
     class Meta:
         model = Post
