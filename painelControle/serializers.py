@@ -1,17 +1,17 @@
 from rest_framework import serializers
+
 from content.models import Category, Post, Tag
 from home.models import HomeSection, HomeSectionItem
 from media_app.models import Media
 from navigation.models import Menu, MenuItem
 
-# Serializer que devem ser feitos
-# Media, Category, Tag, Post, HomeSection, HomeSectionItem, Menu, MenuItem
 
 class PainelMediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Media
-        fields = ['id', 'file', 'alt_text', 'uploaded_at']
+        fields = ['id', 'file', 'title', 'alt_text', 'image_type', 'uploaded_at']
         read_only_fields = ['id', 'uploaded_at']
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,34 +19,59 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'color', 'is_active']
         read_only_fields = ['id']
 
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Tag 
+        model = Tag
         fields = ['id', 'name', 'slug']
         read_only_fields = ['id']
 
-class PostSerializer(serializers.ModelSerializer):
-    author_info = serializers.PrimaryKeyRelatedField(source='author', read_only=True)
-    categories_info = serializers.StringRelatedField(many=True, source='categories', read_only=True)
-    tags_info = serializers.StringRelatedField(many=True, source='tags', read_only=True)
-    cover_image_info = PainelMediaSerializer(source='cover_image', read_only=True)
+
+class PostReadSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source='author.name', read_only=True)
+    categories = CategorySerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
+    cover_image = PainelMediaSerializer(read_only=True)
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'subtitle', 'slug', 'content', 'status', 'created_at', 'updated_at',
-                  'author_info', 'categories_info', 'tags_info', 'cover_image_info', # Read-only fields
-                  'author', 'categories', 'tags', 'cover_image' # Write-only fields
-                ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-        extra_kwargs = {
-            'author': {'write_only': True},
-            'categories': {'write_only': True},
-            'tags': {'write_only': True},
-            'cover_image': {'write_only': True},
-        }
+        fields = [
+            'id',
+            'title',
+            'subtitle',
+            'slug',
+            'content',
+            'status',
+            'published_at',
+            'reading_time',
+            'created_at',
+            'updated_at',
+            'author_name',
+            'categories',
+            'tags',
+            'cover_image',
+        ]
 
-        def get_author_info(self, obj):
-            return {'id': obj.author.id, 'name': obj.author.name}
+
+class PostWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = [
+            'id',
+            'title',
+            'subtitle',
+            'slug',
+            'content',
+            'status',
+            'published_at',
+            'reading_time',
+            'author',
+            'categories',
+            'tags',
+            'cover_image',
+        ]
+        read_only_fields = ['id']
+
 
 class HomeSectionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -54,21 +79,13 @@ class HomeSectionSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'section_type', 'order', 'is_active']
         read_only_fields = ['id']
 
-class HomeSectionItemSerializer(serializers.ModelSerializer):
-    section_info = serializers.StringRelatedField(read_only=True)
-    post_info = serializers.StringRelatedField(read_only=True)
 
+class HomeSectionItemSerializer(serializers.ModelSerializer):
     class Meta:
-        model = HomeSectionItem 
-        fields = ['id', 'order',
-        'section', 'post',
-        'section_info', 'post_info']
+        model = HomeSectionItem
+        fields = ['id', 'section', 'post', 'order']
         read_only_fields = ['id']
 
-        extra_kwargs = {
-            'section': {'write_only': True},
-            'post': {'write_only': True},
-        }
 
 class MenuSerializer(serializers.ModelSerializer):
     class Meta:
@@ -76,17 +93,9 @@ class MenuSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'slug', 'is_active', 'created_at']
         read_only_fields = ['id', 'created_at']
 
-class MenuItemSerializer(serializers.ModelSerializer):
-    menu_info = serializers.StringRelatedField(read_only=True)
-    parent_info = serializers.StringRelatedField(read_only=True)
 
+class MenuItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = MenuItem
-        fields = ['id', 'label', 'url', 'order', 'target', 'is_active',
-                  'menu', 'parent',
-                  'menu_info', 'parent_info']
-        read_only_fields = ['id']  
-        extra_kwargs = {
-            'menu': {'write_only': True},
-            'parent': {'write_only': True},
-        }
+        fields = ['id', 'menu', 'parent', 'label', 'url', 'order', 'target', 'is_active']
+        read_only_fields = ['id']

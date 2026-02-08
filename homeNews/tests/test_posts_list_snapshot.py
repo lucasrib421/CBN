@@ -11,10 +11,11 @@ def test_posts_list_snapshot_shape(api_client, public_post):
 
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data, list)
-    assert len(data) >= 1
+    assert set(data.keys()) == {'count', 'next', 'previous', 'results'}
+    assert isinstance(data['results'], list)
+    assert len(data['results']) >= 1
     assert_keys(
-        data[0],
+        data['results'][0],
         {
             'id',
             'title',
@@ -23,7 +24,9 @@ def test_posts_list_snapshot_shape(api_client, public_post):
             'cover_image',
             'author',
             'categories',
+            'published_at',
+            'reading_time',
             'created_at',
         },
     )
-    assert data[0]['slug'] == public_post.slug
+    assert data['results'][0]['slug'] == public_post.slug

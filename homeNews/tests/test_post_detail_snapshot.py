@@ -23,6 +23,8 @@ def test_posts_detail_snapshot_shape(api_client, public_post):
             'author',
             'categories',
             'tags',
+            'published_at',
+            'reading_time',
             'created_at',
             'updated_at',
         },

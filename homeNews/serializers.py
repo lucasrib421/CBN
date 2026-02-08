@@ -3,7 +3,7 @@ from accounts.models import Author
 from content.models import Category, Post, Tag
 from home.models import HomeSection, HomeSectionItem
 from media_app.models import Media
-from navigation.models import Menu, MenuItem
+from navigation.models import Menu, MenuItem, Redirect
 
 # --- Blocos Básicos ---
 
@@ -47,7 +47,7 @@ class PostListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'subtitle', 'slug', 
             'cover_image', 'author', 'categories', 
-            'created_at'
+            'published_at', 'reading_time', 'created_at'
         ]
 
 class PostDetailSerializer(serializers.ModelSerializer):
@@ -64,7 +64,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'subtitle', 'slug', 'content', 
             'cover_image', 'author', 'categories', 'tags',
-            'created_at', 'updated_at'
+            'published_at', 'reading_time', 'created_at', 'updated_at'
         ]
 
 # --- Estrutura da Home ---
@@ -113,3 +113,9 @@ class MenuSerializer(serializers.ModelSerializer):
         # Filtra apenas itens de primeiro nível (parent=None)
         root_items = obj.menuitem_set.filter(parent__isnull=True, is_active=True).order_by('order')
         return MenuItemSerializer(root_items, many=True).data
+
+
+class RedirectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Redirect
+        fields = ['id', 'old_path', 'new_path', 'url_type', 'is_active']
