@@ -29,6 +29,7 @@ O `make setup` faz tudo automaticamente:
 3. Sobe todos os containers
 4. Roda as migrations do Django
 5. Carrega dados iniciais (categorias, tags, status, roles, menu)
+6. Importa o realm `cbn` no Keycloak a partir de `docker/keycloak/cbn-realm-export.json`
 
 Depois do setup, crie um superusuário:
 
@@ -81,6 +82,41 @@ make lint                        # Roda ESLint
 make npm-install PKG=axios       # Instala dependência
 make npm-install-dev PKG=vitest  # Instala devDependency
 ```
+
+## Testes e Qualidade
+
+### Backend (dentro do container API)
+
+```bash
+docker compose exec api pytest
+docker compose exec api pytest --cov
+docker compose exec api ruff check core homeNews painelControle setup conftest.py manage.py
+docker compose exec api ruff format --check core/settings.py core/urls.py conftest.py homeNews/tests setup/tests
+docker compose exec -e HOME=/tmp api pip-audit
+```
+
+### Frontend (dentro do container frontend)
+
+```bash
+docker compose exec frontend npm run lint
+docker compose exec frontend npm run test
+docker compose exec frontend npm run build
+docker compose exec frontend npm audit --audit-level=high
+```
+
+## CI/CD
+
+Pipeline GitHub Actions em `.github/workflows/ci.yml` com 3 jobs paralelos:
+
+- `backend`: `manage.py check --deploy`, `pytest --cov`, `ruff check`, `ruff format --check`
+- `frontend`: `npm run lint`, `npm run test`, `npm run build`
+- `security`: `pip-audit` e `npm audit --audit-level=high`
+
+Triggers:
+- push para `dev` e `main`
+- pull request para `main`
+
+Atualizações automáticas de dependências em `.github/dependabot.yml` (pip, npm e GitHub Actions, semanal).
 
 ### Logs e Debug
 
@@ -152,6 +188,9 @@ A API segue o padrão REST com Django REST Framework.
 - `GET /api/home/` — Seções da home
 - `GET /api/menus/` — Menus de navegação
 
+**Endpoint do painel** (`/api/painel/`):
+- `GET /api/painel/media/` — Lista mídias (admin)
+
 **Documentação interativa:** Swagger UI em http://localhost:8000/api/schema/swagger/
 
 ## Dados Iniciais (Seed)
@@ -179,3 +218,10 @@ Para conectar DBeaver, PGAdmin ou outra ferramenta:
 ## Deploy (Producao)
 
 O ambiente de producao usa `docker-compose.prod.yml` com Traefik (SSL automatico via Let's Encrypt), Gunicorn e Nginx. Nao use este arquivo localmente.
+
+## Keycloak
+
+- Realm versionado: `docker/keycloak/cbn-realm-export.json`
+- Compose de desenvolvimento sobe o Keycloak com `start-dev --import-realm`
+- Client esperado para frontend: `cbn-frontend`
+- Consulte `docker/keycloak/README.md` para detalhes do realm e do import automatico
