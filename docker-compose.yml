@@ -19,11 +19,13 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    mem_limit: 512m
+    cpus: 1.00
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: cbn_keycloak
-    command: start-dev # Modo de desenvolvimento (não exige HTTPS)
+    command: start-dev --import-realm # Modo de desenvolvimento (não exige HTTPS)
     environment:
       # Configuração do Admin
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
@@ -43,6 +45,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./docker/keycloak/cbn-realm-export.json:/opt/keycloak/data/import/cbn-realm-export.json:ro
+    mem_limit: 512m
+    cpus: 1.00
   # (Opcional) DBeaver ou Adminer web se quiser ver o banco sem instalar nada
   # adminer:
   #   image: adminer
@@ -84,3 +90,5 @@ services:
       - CHOKIDAR_USEPOLLING=true
     depends_on:
       - api
+    mem_limit: 512m
+    cpus: 1.00
