@@ -7,10 +7,15 @@
 # --- Python / Django ---
 __pycache__/
 *.py[cod]
+*.pyo
 venv/
+.venv/
 db.sqlite3
 media/
 staticfiles/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
 
 # --- Node / React ---
 node_modules/
@@ -19,10 +24,24 @@ frontend/.env
 frontend/.env.local
 
 # --- Docker ---
-# Se você tiver dados de banco local mapeados
 local_pg_data/
 pg_data_prod/
 
 # --- IDEs ---
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# --- Logs ---
+*.log
+npm-debug.log*
+/.sisyphus

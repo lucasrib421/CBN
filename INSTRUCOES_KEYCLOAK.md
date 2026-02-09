@@ -1,42 +1,54 @@
-# 🔐 Configuração do Keycloak (Autenticação)
+# Configuracao do Keycloak (Autenticacao)
 
-Este projeto agora utiliza Keycloak para autenticação. Siga os passos abaixo ao rodar o projeto pela primeira vez.
+O ambiente local ja sobe com realm importado automaticamente.
 
-## 1. Subindo o Ambiente
+## 1. Subir ambiente
+
 ```bash
-docker compose up -d --build
+make setup
 ```
 
-## 2. Configuração Inicial do Banco (Primeira vez apenas)
-Se o container do Keycloak ficar reiniciando com erro `database not found`:
+Ou, se ja estiver configurado:
+
 ```bash
-# Crie o banco manualmente
-docker compose exec db psql -U postgres -c "CREATE DATABASE keycloak;"
+make up
+```
+
+## 2. Como o import funciona
+
+- O `docker-compose.yml` inicia o Keycloak com `start-dev --import-realm`
+- O arquivo `docker/keycloak/cbn-realm-export.json` e montado em `/opt/keycloak/data/import/cbn-realm-export.json`
+- O realm importado e `cbn`
+- O client esperado pelo frontend e `cbn-frontend`
+
+## 3. Acesso ao painel
+
+- URL: `http://localhost:8080`
+- Admin user/password: `KEYCLOAK_ADMIN` e `KEYCLOAK_ADMIN_PASSWORD` do `.env`
+
+## 4. Dados esperados no frontend
+
+As variaveis de ambiente do container frontend (definidas no `docker-compose.yml` ou em `frontend/.env`) devem incluir:
+
+- `NEXT_PUBLIC_API_URL=http://localhost:8000`
+- `AUTH_KEYCLOAK_ID=cbn-frontend`
+- `AUTH_KEYCLOAK_SECRET=<secret do client>`
+- `AUTH_KEYCLOAK_ISSUER=http://localhost:8080/realms/cbn`
+- `KEYCLOAK_INTERNAL_URL=http://keycloak:8080`
+
+## 5. Vinculo com Django (obrigatorio para autores)
+
+Para um usuario autenticado no Keycloak conseguir atuar como autor no Django:
+
+1. Acesse `http://localhost:8000/admin`
+2. Crie um `User` com o mesmo `username` do Keycloak
+3. Em `Autores`, crie um `Author` vinculado a esse `User`
+
+## 6. Troubleshooting rapido
+
+Se o Keycloak nao subir por banco ausente (ambiente antigo sem init):
+
+```bash
+docker compose exec db psql -U postgres -d postgres -c "CREATE DATABASE keycloak"
 docker compose restart keycloak
 ```
-
-## 3. Configurando o Painel (Manual)
-Acesse http://localhost:8080 (Login: admin / Senha: ver .env)
-
-1. **Criar Realm:**
-   - Clique em "Master" (topo esquerdo) -> "Create Realm".
-   - Nome: `exemplo`.
-
-2. **Criar Client (Conexão Frontend):**
-   - Menu "Clients" -> "Create client".
-   - Client ID: `exemplo-frontend`.
-   - Login Settings:
-     - Valid Redirect URIs: `http://localhost:5173/*`
-     - Web Origins: `+`
-
-3. **Criar Usuário:**
-   - Menu "Users" -> "Add user".
-   - Username: `seu-user`.
-   - Aba "Credentials" -> "Set password" -> Defina a senha (desmarque "Temporary").
-
-## 4. Vínculo com Django (Importante!)
-Para que o autor consiga criar posts, ele precisa existir no Django:
-
-1. Acesse http://localhost:8000/admin (Superusuário).
-2. Crie um Usuário com **o mesmo username** do Keycloak (ex: `seu-user`).
-3. Vá em "Autores" e crie um Autor, vinculando-o a esse Usuário.

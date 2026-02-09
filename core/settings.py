@@ -19,7 +19,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-padrao-local-apenas'
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Lê a lista de domínios permitidos do .env separada por vírgula
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,api').split(',')
+
+
+def _split_env_list(var_name):
+    value = os.getenv(var_name, '')
+    return [item.strip() for item in value.split(',') if item.strip()]
 
 
 # Application definition
@@ -31,22 +36,26 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     # Third party apps
     'rest_framework',
     'django_filters',
     'corsheaders',
     'drf_spectacular',
-
     # Local apps
+    'content',
+    'accounts',
+    'media_app',
+    'navigation',
+    'home',
     'homeNews',
+    'painelControle',
     'setup',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware", # Arquivos estáticos
-    'corsheaders.middleware.CorsMiddleware', # CORS vem antes de tudo possível
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Arquivos estáticos
+    'corsheaders.middleware.CorsMiddleware',  # CORS vem antes de tudo possível
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -55,7 +64,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'core.urls' # Certifique-se que sua pasta principal se chama 'core' mesmo
+ROOT_URLCONF = 'core.urls'  # Certifique-se que sua pasta principal se chama 'core' mesmo
 
 TEMPLATES = [
     {
@@ -90,16 +99,24 @@ DATABASES = {
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
 
 # Internationalization
-LANGUAGE_CODE = 'pt-br' # Mudei para Português
-TIME_ZONE = 'America/Sao_Paulo' # Mudei para Horário de Brasília
+LANGUAGE_CODE = 'pt-br'  # Mudei para Português
+TIME_ZONE = 'America/Sao_Paulo'  # Mudei para Horário de Brasília
 USE_I18N = True
 USE_TZ = True
 
@@ -107,7 +124,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media Files (Uploads de imagens)
 MEDIA_URL = '/media/'
@@ -117,15 +134,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # --- CONFIGURAÇÃO DE DOMÍNIO E CORS ---
 
 # Se DEBUG for True (Local), libera tudo. Se for False (Prod), restringe.
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOW_ALL_ORIGINS = False
-    # Aqui entrará o domínio do seu Front-end React quando ele existir
-    CORS_ALLOWED_ORIGINS = [
-        "https://corrupcaobrasileira.com",
-        "https://www.corrupcaobrasileira.com",
-    ]
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+if not DEBUG:
+    CORS_ALLOWED_ORIGINS = _split_env_list('CORS_ALLOWED_ORIGINS')
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -133,16 +144,37 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny', # Por padrão é aberto, fechamos nas Views específicas
+        'rest_framework.permissions.AllowAny',  # Por padrão é aberto, fechamos nas Views específicas
     ),
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+    },
 }
 
 # CSRF: Permite que o painel admin funcione através do seu domínio HTTPS
-CSRF_TRUSTED_ORIGINS = [
-    'https://api.corrupcaobrasileira.com', 
-    'https://corrupcaobrasileira.com'
-]
+CSRF_TRUSTED_ORIGINS = _split_env_list('CSRF_TRUSTED_ORIGINS')
+
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 from datetime import timedelta
 
@@ -151,28 +183,55 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'ALGORITHM': 'RS256',  # <--- MUDAMOS PARA RS256 (Padrão do Keycloak)
-    
     # URL onde o Django vai buscar a Chave Pública do Keycloak para validar a assinatura
-    'JWK_URL': "http://keycloak:8080/realms/cbn/protocol/openid-connect/certs",
-    
+    'JWK_URL': os.getenv(
+        'JWT_JWK_URL',
+        'http://keycloak:8080/realms/cbn/protocol/openid-connect/certs',
+    ),
     # Mapeamento de Usuário:
     # O Keycloak manda o login no campo 'preferred_username'.
     # O Django deve usar isso para buscar no campo 'username' do banco local.
     'USER_ID_FIELD': 'username',
     'USER_ID_CLAIM': 'preferred_username',
-    
     'AUTH_HEADER_TYPES': ('Bearer',),
-    
     # O Keycloak geralmente coloca 'account' no audience, mas às vezes vem vazio.
     # Se der erro de "Audience", deixe como None por enquanto.
-    'AUDIENCE': None, 
-    'ISSUER': None, # Ignora validação estrita de URL (evita erro Docker vs Localhost)
+    'AUDIENCE': 'account',
+    'ISSUER': os.getenv(
+        'JWT_ISSUER'
+    ),  # Ignora validação estrita de URL (evita erro Docker vs Localhost)
 }
 
-# --- ATENÇÃO: CONFIGURAÇÃO PRO KEYCLOAK (MODO INTELIGENTE) ---
-# O SimpleJWT precisa buscar as chaves públicas (JWK) do Keycloak para validar o token.
-# Como estamos em dev, vamos simplificar. Se quiser fazer a validação real RS256:
-SIMPLE_JWT['JWK_URL'] = "http://keycloak:8080/realms/cbn/protocol/openid-connect/certs"
-SIMPLE_JWT['ALGORITHM'] = 'RS256'
-SIMPLE_JWT['AUDIENCE'] = 'account' # O Keycloak geralmente coloca 'account' no audience
-SIMPLE_JWT['ISSUER'] = 'http://localhost:8080/realms/cbn'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'json': {
+            'format': '{"time":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL', 'redis://redis:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'cbn',
+        'TIMEOUT': 300,
+    }
+}
