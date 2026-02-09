@@ -168,35 +168,6 @@ class HomeSectionItem(models.Model):
     def __str__(self):
         return f"{self.section.title} - {self.post.title}"
 
-# Ira substituir as antigas tabelas de HomeSection e HomeSectionItem
-class HomeConfig(models.Model):
-    # Definimos os "Tipos Permitidos" aqui. É nossa lista de peças de Lego oficiais.
-    class SlotType(models.TextChoices):
-        HERO = 'HERO', 'A - Manchete Principal (1 Post)'
-        TRIPLE_GRID = 'TRIPLE', 'B - Grid Triplo (3 Posts)'
-        FEED = 'FEED', 'C - Feed Cronológico'
-        CATEGORY_COLUMNS = 'COLUMNS', 'D - Colunas por Categoria'
-
-    version_name = models.CharField(max_length=100)
-    is_active = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    layout_structure = models.JSONField(default=list)
-
-    def save(self, *args, **kwargs):
-        # Garante apenas 1 ativo
-        if self.is_active:
-            HomeConfig.objects.filter(is_active=True).exclude(id=self.id).update(is_active=False)
-        super().save(*args, **kwargs)
-
-    def clean(self):
-        # Aqui podemos validar se o JSON segue a regra antes de salvar
-        # Ex: verificar se todos os itens no JSON têm um "type" que existe no SlotType
-        for block in self.layout_structure:
-            tipo = block.get('type')
-            if tipo not in self.SlotType.values:
-                raise ValidationError(f"O tipo de bloco '{tipo}' não é válido ou não foi implementado.")
-
 class Menu(models.Model):
     title = models.CharField(max_length=100, null=False, blank=False)
     slug = models.SlugField(max_length=100, unique=True, null=False, blank=False)

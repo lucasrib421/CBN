@@ -12,14 +12,7 @@ from .serializers import (
     MenuSerializer,
     TagSerializer
 )
-from setup.serializers import (
-    MediaSerializer,
-    CategorySimpleSerializer,
-    PostCardSerializer
-)
 from .filters import PostFilter
-
-#Criar ViewSet para Author futuramente, porém mapear apenas os campos de nome, bio e avatar.
 
 class PostViewSet(viewsets.ReadOnlyModelViewSet):
     """
