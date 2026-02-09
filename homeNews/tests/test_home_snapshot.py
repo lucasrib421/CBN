@@ -7,7 +7,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_home_snapshot_shape(api_client, home_section_with_item):
-    response = api_client.get('/api/home/')
+    response = api_client.get('/api/v1/home/')
 
     assert response.status_code == 200
     data = response.json()

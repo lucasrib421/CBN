@@ -7,7 +7,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_posts_detail_snapshot_shape(api_client, public_post):
-    response = api_client.get(f'/api/posts/{public_post.slug}/')
+    response = api_client.get(f'/api/v1/posts/{public_post.slug}/')
 
     assert response.status_code == 200
     data = response.json()

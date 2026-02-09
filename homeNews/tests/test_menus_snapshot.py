@@ -7,7 +7,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_menus_snapshot_shape(api_client, active_menu):
-    response = api_client.get('/api/menus/')
+    response = api_client.get('/api/v1/menus/')
 
     assert response.status_code == 200
     data = response.json()

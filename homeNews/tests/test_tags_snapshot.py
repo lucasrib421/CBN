@@ -10,7 +10,7 @@ pytestmark = pytest.mark.django_db
 def test_tags_snapshot_shape(api_client):
     TagFactory(name='Corrupção', slug='corrupcao')
 
-    response = api_client.get('/api/tags/')
+    response = api_client.get('/api/v1/tags/')
 
     assert response.status_code == 200
     data = response.json()
