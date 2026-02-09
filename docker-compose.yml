@@ -96,14 +96,13 @@ services:
     restart: always
     volumes:
       - ./frontend:/app
-      - /app/node_modules # Truque vital: usa os módulos do Linux (container), não do Windows
+      - /app/node_modules
+      - /app/.next
     ports:
-      - "5173:5173"
+      - "3000:3000"
     environment:
-      # Aponta para o backend local
-      - VITE_API_URL=http://localhost:8000
-      # Ajuda o hot-reload a funcionar melhor no Windows/WSL
-      - CHOKIDAR_USEPOLLING=true
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - INTERNAL_API_URL=http://api:8000
     depends_on:
       - api
     mem_limit: 512m

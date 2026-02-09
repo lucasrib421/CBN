@@ -19,7 +19,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-padrao-local-apenas'
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Lê a lista de domínios permitidos do .env separada por vírgula
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,api').split(',')
 
 
 def _split_env_list(var_name):

@@ -109,25 +109,26 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        VITE_API_URL: ${VITE_API_URL}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: cbn_frontend_prod
     restart: always
+    environment:
+      - INTERNAL_API_URL=http://api:8000
     expose:
-      - "8080" # O Nginx roda na porta 8080 interna
+      - "3000"
     labels:
       - "traefik.enable=true"
-      # Regra: Entra no domínio principal (com ou sem www)
       - "traefik.http.routers.frontend.rule=Host(`${FRONTEND_HOST}`) || Host(`${FRONTEND_WWW_HOST}`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls.certresolver=myresolver"
-      - "traefik.http.services.frontend.loadbalancer.server.port=8080"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
     depends_on:
       api:
         condition: service_healthy
     networks:
       - app_network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5

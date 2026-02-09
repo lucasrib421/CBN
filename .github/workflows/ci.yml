@@ -91,6 +91,8 @@ jobs:
         run: npm run test
 
       - name: Frontend build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
         run: npm run build
 
   security:

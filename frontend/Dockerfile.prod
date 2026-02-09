@@ -1,20 +1,18 @@
-# Estágio 1: Build (Construção)
-FROM node:20-alpine as build
+FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# A URL da API em produção deve ser HTTPS e pública
-ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL}
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN npm run build
 
-# Estágio 2: Serve (Servidor Nginx)
-FROM nginx:alpine
-# Copia o build do estágio anterior para a pasta do Nginx
-COPY --from=build /app/dist /usr/share/nginx/html
-# Copia nossa configuração customizada do Nginx
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
-USER nginx
-EXPOSE 8080
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
+USER node
+EXPOSE 3000
+CMD ["node", "server.js"]
