@@ -81,3 +81,70 @@ export interface Menu {
   slug: string;
   items: MenuItem[];
 }
+
+// --- Admin Panel Types ---
+
+export interface AdminPost {
+  id: number;
+  title: string;
+  subtitle: string;
+  slug: string;
+  content: string;
+  status: string;
+  published_at: string | null;
+  reading_time: number | null;
+  created_at: string;
+  updated_at: string;
+  author_name: string;
+  categories: Category[];
+  tags: Tag[];
+  cover_image?: Media;
+}
+
+export interface AdminPostWrite {
+  title: string;
+  subtitle?: string;
+  slug: string;
+  content: string;
+  status: string;
+  published_at?: string | null;
+  reading_time?: number | null;
+  author: string; // UUID
+  categories: number[];
+  tags: number[];
+  cover_image?: number | null;
+}
+
+export interface AdminHomeSection {
+  id: number;
+  title: string;
+  section_type: string;
+  order: number;
+  is_active: boolean;
+}
+
+export interface AdminHomeSectionItem {
+  id: number;
+  section: number;
+  post: number;
+  order: number;
+}
+
+export interface AdminMenu {
+  id: number;
+  title: string;
+  slug: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AdminMenuItem {
+  id: number;
+  menu: number;
+  parent: number | null;
+  label: string;
+  url: string;
+  order: number;
+  target: string;
+  is_active: boolean;
+}
