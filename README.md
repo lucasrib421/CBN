@@ -1,17 +1,19 @@
 # CBN - Corrupção Brasileira News
 
-Portal jornalístico com Django REST API (backend) e React (frontend). Autenticação via Keycloak (OIDC). Projeto 100% Dockerizado.
+Portal jornalístico com Django REST API (backend) e Next.js (frontend). Autenticação via Keycloak (OIDC). Projeto 100% Dockerizado.
 
 ## Tecnologias
 
 | Camada | Stack |
 |--------|-------|
 | **Backend** | Python 3.12, Django 6.0, Django REST Framework, drf-spectacular |
-| **Frontend** | React 19, TypeScript, Vite, TailwindCSS |
+| **Frontend** | Next.js 16, React 19, TypeScript, Tailwind CSS 4, Auth.js v5 |
 | **Banco de Dados** | PostgreSQL 15 |
-| **Autenticação** | Keycloak 26 (OIDC / JWT RS256) |
+| **Cache** | Redis 7 |
+| **Autenticação** | Keycloak 26 (OIDC / JWT RS256) + Auth.js v5 |
 | **Infra Dev** | Docker Compose, Makefile |
 | **Infra Prod** | Traefik (SSL), Gunicorn, Nginx |
+| **CI/CD** | GitHub Actions (lint, test, build, security) |
 
 ## Quick Start
 
@@ -41,8 +43,9 @@ make superuser
 
 | Serviço | URL |
 |---------|-----|
-| Frontend (React) | http://localhost:5173 |
-| API (Django) | http://localhost:8000/api/ |
+| Frontend (Next.js) | http://localhost:3000 |
+| Admin Panel | http://localhost:3000/admin |
+| API (Django) | http://localhost:8000/api/v1/ |
 | Django Admin | http://localhost:8000/admin/ |
 | Swagger UI | http://localhost:8000/api/schema/swagger/ |
 | ReDoc | http://localhost:8000/api/schema/redoc/ |
@@ -80,7 +83,7 @@ make collectstatic   # Coleta arquivos estáticos
 ```bash
 make lint                        # Roda ESLint
 make npm-install PKG=axios       # Instala dependência
-make npm-install-dev PKG=vitest  # Instala devDependency
+make npm-install-dev PKG=vitest  # Instala devDependência
 ```
 
 ## Testes e Qualidade
@@ -90,8 +93,8 @@ make npm-install-dev PKG=vitest  # Instala devDependency
 ```bash
 docker compose exec api pytest
 docker compose exec api pytest --cov
-docker compose exec api ruff check core homeNews painelControle setup conftest.py manage.py
-docker compose exec api ruff format --check core/settings.py core/urls.py conftest.py homeNews/tests setup/tests
+docker compose exec api ruff check core content accounts media_app navigation home homeNews painelControle conftest.py manage.py
+docker compose exec api ruff format --check core content accounts media_app navigation home homeNews painelControle conftest.py manage.py
 docker compose exec -e HOME=/tmp api pip-audit
 ```
 
@@ -108,7 +111,7 @@ docker compose exec frontend npm audit --audit-level=high
 
 Pipeline GitHub Actions em `.github/workflows/ci.yml` com 3 jobs paralelos:
 
-- `backend`: `manage.py check --deploy`, `pytest --cov`, `ruff check`, `ruff format --check`
+- `backend`: `manage.py check --deploy`, `pytest --cov`, `ruff check`, `ruff format --check` (com PostgreSQL e Redis)
 - `frontend`: `npm run lint`, `npm run test`, `npm run build`
 - `security`: `pip-audit` e `npm audit --audit-level=high`
 
@@ -146,50 +149,102 @@ make clean           # Para tudo e remove volumes (APAGA dados!)
 make reset           # Reset completo: limpa, rebuilda, migrate + seed
 ```
 
+## Arquitetura
+
+### Backend — Django Domain Apps
+
+O backend é dividido em 5 domain apps + 2 apps de API:
+
+| App | Modelos | Responsabilidade |
+|-----|---------|------------------|
+| `content` | Post, Category, Tag, PostStatus | Conteúdo editorial |
+| `accounts` | Author, Role | Autores e papéis |
+| `media_app` | Media | Upload e gerenciamento de mídia |
+| `navigation` | Menu, MenuItem, Redirect | Navegação e redirects SEO |
+| `home` | HomeSection, HomeSectionItem | Layout da home page |
+| `homeNews` | — (views/serializers) | API pública read-only v1 |
+| `painelControle` | — (views/serializers) | API admin autenticada v1 |
+
+### Frontend — Next.js 16
+
+| Rota | Tipo | Descrição |
+|------|------|-----------|
+| `/` | SSR | Home page com seções |
+| `/[slug]` | SSR | Detalhe do post |
+| `/categoria/[slug]` | SSR | Posts por categoria |
+| `/admin` | Protegido | Dashboard com estatísticas |
+| `/admin/posts` | Protegido | Lista de publicações |
+| `/admin/posts/new` | Protegido | Criar publicação |
+| `/admin/posts/[id]/edit` | Protegido | Editar publicação |
+| `/admin/media` | Protegido | Biblioteca de mídia |
+| `/admin/categories` | Protegido | CRUD de categorias |
+| `/admin/home-sections` | Protegido | Editor de seções da home |
+
+Autenticação do admin via Auth.js v5 + Keycloak (client confidencial).
+
+### Infraestrutura
+
+- **Dev:** `docker-compose.yml` — Postgres (porta 5433 no host), Keycloak (8080), Django (8000), Next.js (3000), Redis (6379)
+- **Prod:** `docker-compose.prod.yml` — Traefik para SSL/reverse proxy, Gunicorn, Nginx para frontend
+- **Cache:** Redis 7 — cache de endpoints públicos com invalidação via signals
+- **Database:** PostgreSQL 15. Django usa `cbn_db`, Keycloak usa `keycloak` — ambos na mesma instância
+
 ## Estrutura do Projeto
 
 ```
 CBN/
 ├── core/                  # Configurações Django (settings, urls, wsgi)
-├── setup/                 # App Django: TODOS os models
-│   ├── models.py          # Media, Status, Category, Tag, Role, Author, Post, etc.
-│   ├── admin.py           # Registro de models no Django Admin
-│   └── fixtures/          # Dados iniciais (initial_data.json)
-├── homeNews/              # App Django: API pública (read-only)
-├── painelControle/        # App Django: API admin (autenticada)
-├── frontend/              # React + TypeScript + Vite + TailwindCSS
+├── content/               # App: Post, Category, Tag, PostStatus
+├── accounts/              # App: Author, Role
+├── media_app/             # App: Media
+├── navigation/            # App: Menu, MenuItem, Redirect
+├── home/                  # App: HomeSection, HomeSectionItem
+├── homeNews/              # API pública (read-only, versionada v1)
+├── painelControle/        # API admin (autenticada, CRUD completo)
+├── frontend/              # Next.js 16 + TypeScript + Tailwind CSS 4
 │   ├── src/
+│   │   ├── app/           # App Router (pages, layouts)
+│   │   │   ├── admin/     # Painel admin (protegido)
+│   │   │   └── api/auth/  # Auth.js route handler
 │   │   ├── components/    # Componentes reutilizáveis
-│   │   ├── pages/         # Páginas (HomeNews, PainelControle)
-│   │   ├── services/      # Axios + chamadas à API
+│   │   ├── lib/           # API clients, utilitários
 │   │   ├── types/         # Interfaces TypeScript
-│   │   └── routes/        # Definições de rotas
-│   └── Dockerfile         # Container de desenvolvimento
+│   │   └── auth.ts        # Auth.js v5 config (Keycloak)
+│   └── middleware.ts       # Proteção de rotas /admin/*
 ├── docker/
-│   └── postgres/
-│       └── init_db.sh     # Cria banco do Keycloak automaticamente
+│   ├── keycloak/          # Realm export + README
+│   └── postgres/          # Script de init do banco
+├── .github/
+│   ├── workflows/ci.yml   # Pipeline CI (lint, test, build, security)
+│   └── dependabot.yml     # Atualizações automáticas
 ├── docker-compose.yml     # Ambiente de desenvolvimento
-├── docker-compose.prod.yml # Ambiente de produção (Traefik + Gunicorn)
+├── docker-compose.prod.yml # Ambiente de produção
 ├── Dockerfile             # Imagem da API Django
 ├── Makefile               # Comandos de desenvolvimento
-├── .editorconfig          # Configuração de editores
 └── .env.example           # Template de variáveis de ambiente
 ```
 
 ## API
 
-A API segue o padrão REST com Django REST Framework.
+A API segue o padrão REST com Django REST Framework, versionada em `/api/v1/`.
 
-**Endpoints Publicos** (`/api/`):
-- `GET /api/posts/` — Lista de posts publicados (filtros: titulo, categoria, tag, autor)
-- `GET /api/posts/{slug}/` — Detalhe de um post
-- `GET /api/categories/` — Categorias
-- `GET /api/tags/` — Tags
-- `GET /api/home/` — Seções da home
-- `GET /api/menus/` — Menus de navegação
+**Endpoints Públicos** (`/api/v1/`):
+- `GET /api/v1/posts/` — Lista de posts publicados (paginada, filtros: titulo, categoria, tag, autor)
+- `GET /api/v1/posts/{slug}/` — Detalhe de um post
+- `GET /api/v1/categories/` — Categorias
+- `GET /api/v1/tags/` — Tags
+- `GET /api/v1/home/` — Seções da home
+- `GET /api/v1/menus/` — Menus de navegação
+- `GET /api/v1/redirects/` — Redirects SEO
 
-**Endpoint do painel** (`/api/painel/`):
-- `GET /api/painel/media/` — Lista mídias (admin)
+Todos os endpoints públicos possuem:
+- Paginação (`PageNumberPagination`, 20 por página)
+- Rate limiting (anônimo: 100/hora, autenticado: 1000/hora)
+- Cache headers (`Cache-Control`, `ETag`)
+
+**Endpoints Admin** (`/api/v1/painel/`):
+- CRUD completo para: Posts, Categories, Tags, Media, HomeSections, HomeSectionItems, Menus, MenuItems
+- Autenticação via JWT (Keycloak)
 
 **Documentação interativa:** Swagger UI em http://localhost:8000/api/schema/swagger/
 
@@ -197,7 +252,6 @@ A API segue o padrão REST com Django REST Framework.
 
 O comando `make seed` carrega dados iniciais para desenvolvimento:
 
-- **Status:** DRAFT, PUBLISHED, ARCHIVED
 - **Categorias:** Politica, Economia, Judiciario, Investigacoes, Internacional
 - **Tags:** Corrupcao, Lavagem de Dinheiro, Licitacao, Congresso, STF
 - **Roles:** Editor Chefe, Reporter, Colunista
@@ -223,5 +277,5 @@ O ambiente de producao usa `docker-compose.prod.yml` com Traefik (SSL automatico
 
 - Realm versionado: `docker/keycloak/cbn-realm-export.json`
 - Compose de desenvolvimento sobe o Keycloak com `start-dev --import-realm`
-- Client esperado para frontend: `cbn-frontend`
+- Client: `cbn-frontend` (confidential, requer secret)
 - Consulte `docker/keycloak/README.md` para detalhes do realm e do import automatico
