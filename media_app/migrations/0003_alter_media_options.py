@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('media_app', '0002_alter_media_options_alter_media_image_type'),
     ]

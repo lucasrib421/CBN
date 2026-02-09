@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('navigation', '0002_alter_menu_options_alter_menuitem_options_and_more'),
     ]
@@ -13,6 +12,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='redirect',
             name='url_type',
-            field=models.CharField(choices=[('permanent', '301 Permanente'), ('temporary', '302 Temporário')], default='permanent', max_length=20),
+            field=models.CharField(
+                choices=[('permanent', '301 Permanente'), ('temporary', '302 Temporário')],
+                default='permanent',
+                max_length=20,
+            ),
         ),
     ]
