@@ -49,6 +49,20 @@ services:
       - ./docker/keycloak/cbn-realm-export.json:/opt/keycloak/data/import/cbn-realm-export.json:ro
     mem_limit: 512m
     cpus: 1.00
+
+  redis:
+    image: redis:7-alpine
+    container_name: cbn_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 256m
+    cpus: 0.50
   # (Opcional) DBeaver ou Adminer web se quiser ver o banco sem instalar nada
   # adminer:
   #   image: adminer
@@ -71,6 +85,8 @@ services:
     depends_on:
       db:
         condition: service_healthy # Só liga o Django quando o Banco estiver pronto
+      redis:
+        condition: service_healthy
 
   frontend:
     build: 

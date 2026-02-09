@@ -56,6 +56,20 @@ services:
     mem_limit: 512m
     cpus: 1.00
 
+  redis:
+    image: redis:7-alpine
+    container_name: cbn_redis_prod
+    restart: always
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 256m
+    cpus: 0.50
+
   # --- O Backend (Django) ---
   api:
     build: .
@@ -69,6 +83,8 @@ services:
       - .env
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - app_network
