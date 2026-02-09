@@ -72,6 +72,12 @@ class PostViewSet(BaseAuthenticatedViewSet):
             return PostReadSerializer
         return PostWriteSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user.author_profile)
+
+    def perform_update(self, serializer):
+        serializer.save(author=serializer.instance.author)
+
 
 class HomeSectionViewSet(BaseAuthenticatedViewSet):
     queryset = HomeSection.objects.all()

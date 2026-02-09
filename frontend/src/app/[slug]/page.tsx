@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import DOMPurify from 'isomorphic-dompurify';
 import { fetchAPI } from '@/lib/api';
 import type { PostDetail } from '@/types';
 
@@ -143,7 +144,7 @@ export default async function PostPage({ params }: PageProps) {
       {/* Content */}
       <div
         className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-a:text-red-600"
-        dangerouslySetInnerHTML={{ __html: post.content }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
       />
 
       {/* Tags */}

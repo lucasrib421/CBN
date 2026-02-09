@@ -103,10 +103,10 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - INTERNAL_API_URL=http://api:8000
-      - AUTH_SECRET=cbn-dev-auth-secret-change-in-production
-      - AUTH_KEYCLOAK_ID=cbn-frontend
-      - AUTH_KEYCLOAK_SECRET=cbn-dev-secret-change-in-production
-      - AUTH_KEYCLOAK_ISSUER=http://localhost:8080/realms/cbn
+      - AUTH_SECRET=${AUTH_SECRET:-cbn-dev-auth-secret-change-in-production}
+      - AUTH_KEYCLOAK_ID=${AUTH_KEYCLOAK_ID:-cbn-frontend}
+      - AUTH_KEYCLOAK_SECRET=${AUTH_KEYCLOAK_SECRET:-cbn-dev-secret-change-in-production}
+      - AUTH_KEYCLOAK_ISSUER=${AUTH_KEYCLOAK_ISSUER:-http://localhost:8080/realms/cbn}
       - KEYCLOAK_INTERNAL_URL=http://keycloak:8080
       - AUTH_TRUST_HOST=true
     depends_on:

@@ -28,6 +28,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class PostReadSerializer(serializers.ModelSerializer):
+    author_id = serializers.UUIDField(source='author.id', read_only=True)
     author_name = serializers.CharField(source='author.name', read_only=True)
     categories = CategorySerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
@@ -46,6 +47,7 @@ class PostReadSerializer(serializers.ModelSerializer):
             'reading_time',
             'created_at',
             'updated_at',
+            'author_id',
             'author_name',
             'categories',
             'tags',
@@ -65,7 +67,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
             'status',
             'published_at',
             'reading_time',
-            'author',
             'categories',
             'tags',
             'cover_image',

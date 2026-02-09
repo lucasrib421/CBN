@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "isomorphic-dompurify": "^3.0.0-rc.2",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
     "react": "^19.0.0",
@@ -23,6 +24,7 @@
     "@tailwindcss/postcss": "^4.0.0",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^16.0.0",
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^20.11.24",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
