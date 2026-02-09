@@ -30,7 +30,7 @@ class HomeSection(models.Model):
     class Meta:
         ordering = ['order']
         db_table = 'home_section'
-        verbose_name_plural = 'Secoes da Home'
+        verbose_name_plural = 'Seções da Home'
 
     def __str__(self):
         return self.title

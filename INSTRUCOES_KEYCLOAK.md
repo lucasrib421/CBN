@@ -28,11 +28,13 @@ make up
 
 ## 4. Dados esperados no frontend
 
-As variaveis em `frontend/.env` (ou no ambiente do container) devem apontar para:
+As variaveis de ambiente do container frontend (definidas no `docker-compose.yml` ou em `frontend/.env`) devem incluir:
 
-- `VITE_KEYCLOAK_URL=http://localhost:8080`
-- `VITE_KEYCLOAK_REALM=cbn`
-- `VITE_KEYCLOAK_CLIENT_ID=cbn-frontend`
+- `NEXT_PUBLIC_API_URL=http://localhost:8000`
+- `AUTH_KEYCLOAK_ID=cbn-frontend`
+- `AUTH_KEYCLOAK_SECRET=<secret do client>`
+- `AUTH_KEYCLOAK_ISSUER=http://localhost:8080/realms/cbn`
+- `KEYCLOAK_INTERNAL_URL=http://keycloak:8080`
 
 ## 5. Vinculo com Django (obrigatorio para autores)
 

@@ -24,7 +24,7 @@ class Media(models.Model):
     class Meta:
         ordering = ['-uploaded_at']
         db_table = 'media'
-        verbose_name_plural = 'Midias'
+        verbose_name_plural = 'Mídias'
 
     def __str__(self):
         return self.title

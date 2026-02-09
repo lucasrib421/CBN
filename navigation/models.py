@@ -10,7 +10,7 @@ class MenuItemTarget(models.TextChoices):
 
 class RedirectType(models.TextChoices):
     PERMANENT = 'permanent', '301 Permanente'
-    TEMPORARY = 'temporary', '302 Temporario'
+    TEMPORARY = 'temporary', '302 Temporário'
 
 
 class Menu(models.Model):

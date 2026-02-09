@@ -39,7 +39,7 @@ setup: ## Primeiro setup completo (build + migrate + seed)
 	@echo "  [1/5] Verificando arquivos .env..."
 	@test -f .env || (cp .env.example .env && echo "        .env criado a partir do .env.example")
 	@test -f .env && echo "        .env OK"
-	@test -f frontend/.env || (printf "VITE_API_URL=http://localhost:8000\nVITE_KEYCLOAK_URL=http://localhost:8080\nVITE_KEYCLOAK_REALM=cbn\nVITE_KEYCLOAK_CLIENT_ID=cbn-frontend\n" > frontend/.env && echo "        frontend/.env criado")
+	@test -f frontend/.env || (printf "NEXT_PUBLIC_API_URL=http://localhost:8000\nINTERNAL_API_URL=http://api:8000\nAUTH_SECRET=cbn-dev-auth-secret-change-in-production\nAUTH_KEYCLOAK_ID=cbn-frontend\nAUTH_KEYCLOAK_SECRET=cbn-dev-secret-change-in-production\nAUTH_KEYCLOAK_ISSUER=http://localhost:8080/realms/cbn\nKEYCLOAK_INTERNAL_URL=http://keycloak:8080\nAUTH_TRUST_HOST=true\n" > frontend/.env && echo "        frontend/.env criado")
 	@test -f frontend/.env && echo "        frontend/.env OK"
 	@echo ""
 	@echo "  [2/5] Buildando imagens Docker..."
@@ -59,7 +59,7 @@ setup: ## Primeiro setup completo (build + migrate + seed)
 	@echo "  ╔════════════════════════════════════════════════════════╗"
 	@echo "  ║                    Setup concluído!                    ║"
 	@echo "  ╠════════════════════════════════════════════════════════╣"
-	@echo "  ║  Frontend:  http://localhost:5173                      ║"
+	@echo "  ║  Frontend:  http://localhost:3000                      ║"
 	@echo "  ║  API:       http://localhost:8000                      ║"
 	@echo "  ║  Admin:     http://localhost:8000/admin                ║"
 	@echo "  ║  Swagger:   http://localhost:8000/api/schema/swagger/  ║"
@@ -193,7 +193,7 @@ check: ## Verifica se todos os serviços estão saudáveis
 	@echo ""
 	@printf "  %-14s" "PostgreSQL:" && (docker compose exec db pg_isready -U postgres > /dev/null 2>&1 && echo "OK" || echo "FALHOU")
 	@printf "  %-14s" "Django API:" && (curl -s -o /dev/null -w "" http://localhost:8000/api/ 2>/dev/null && echo "OK" || echo "FALHOU")
-	@printf "  %-14s" "Frontend:" && (curl -s -o /dev/null -w "" http://localhost:5173/ 2>/dev/null && echo "OK" || echo "FALHOU")
+	@printf "  %-14s" "Frontend:" && (curl -s -o /dev/null -w "" http://localhost:3000/ 2>/dev/null && echo "OK" || echo "FALHOU")
 	@printf "  %-14s" "Keycloak:" && (curl -s -o /dev/null -w "" http://localhost:8080/ 2>/dev/null && echo "OK" || echo "FALHOU")
 	@echo ""
 
@@ -205,7 +205,7 @@ status: ## Mostra o status dos containers e URLs
 	@echo ""
 	@echo "  URLs:"
 	@echo "  ─────────────────────────────────────────────────"
-	@echo "  Frontend:  http://localhost:5173"
+	@echo "  Frontend:  http://localhost:3000"
 	@echo "  API:       http://localhost:8000/api/"
 	@echo "  Admin:     http://localhost:8000/admin/"
 	@echo "  Swagger:   http://localhost:8000/api/schema/swagger/"

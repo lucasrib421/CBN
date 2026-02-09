@@ -14,11 +14,9 @@ Arquivo versionado de importacao: `cbn-realm-export.json`.
 - Client Secret (dev): `cbn-dev-secret-change-in-production`
 - Fluxo: Authorization Code
 - Redirect URIs:
-  - `http://localhost:5173/*`
   - `http://localhost:3000/*`
   - `http://localhost:3000/api/auth/callback/keycloak`
 - Web origins:
-  - `http://localhost:5173`
   - `http://localhost:3000`
 
 ## Roles de realm
