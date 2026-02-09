@@ -1,4 +1,5 @@
 from rest_framework import filters, permissions, viewsets
+from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
 from content.models import Category, Post, Tag
@@ -73,7 +74,10 @@ class PostViewSet(BaseAuthenticatedViewSet):
         return PostWriteSerializer
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user.author_profile)
+        author = getattr(self.request.user, 'author_profile', None)
+        if author is None:
+            raise ValidationError({'author': 'Usuário não possui perfil de autor vinculado.'})
+        serializer.save(author=author)
 
     def perform_update(self, serializer):
         serializer.save(author=serializer.instance.author)

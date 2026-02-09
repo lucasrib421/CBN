@@ -1,5 +1,4 @@
 import pytest
-from django.test.utils import override_settings
 
 
 @pytest.fixture(autouse=True)

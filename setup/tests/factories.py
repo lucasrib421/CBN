@@ -23,7 +23,7 @@ class MediaFactory(factory.django.DjangoModelFactory):
     file = factory.django.FileField(filename='image.jpg')
     title = factory.Sequence(lambda n: f'Mídia {n}')
     alt_text = factory.Faker('sentence', nb_words=4)
-    image_type = 'image'
+    image_type = 'IMAGE'
 
 
 class CategoryFactory(factory.django.DjangoModelFactory):
