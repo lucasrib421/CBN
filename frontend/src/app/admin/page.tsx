@@ -20,7 +20,7 @@ export default async function DashboardPage() {
       fetchAdminAPI<PaginatedResponse<Category>>('/categories/'),
       fetchAdminAPI<PaginatedResponse<Media>>('/media/'),
     ])
-    recentPosts = await fetchAdminAPI<PaginatedResponse<AdminPost>>('/posts/?ordering=-created_at&page_size=5')
+    recentPosts = await fetchAdminAPI<PaginatedResponse<AdminPost>>('/posts/?ordering=-created_at')
   } catch {
     redirect('/api/auth/signin?callbackUrl=/admin')
   }

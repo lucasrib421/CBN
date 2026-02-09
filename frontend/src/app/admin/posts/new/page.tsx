@@ -17,9 +17,8 @@ const schema = z.object({
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
   categories: z.array(z.number()).min(1, 'Selecione pelo menos uma categoria'),
   tags: z.array(z.number()).optional(),
-  cover_image: z.string().optional().nullable(), // Form uses string (ID), API expects number | null
+  cover_image: z.string().optional().nullable(),
   published_at: z.string().optional().nullable(),
-  author: z.string().uuid('ID do autor inválido'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -197,18 +196,6 @@ export default function NewPostPage() {
               />
             </div>
           )}
-        </div>
-
-        {/* Author */}
-        <div>
-          <label htmlFor="author" className="block text-sm font-medium text-gray-700">ID do Autor (UUID)</label>
-          <input
-            id="author"
-            {...register('author')}
-            placeholder="uuid-do-autor"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-          />
-          {errors.author && <p className="text-red-500 text-sm mt-1">{errors.author.message}</p>}
         </div>
 
         {/* Categories */}

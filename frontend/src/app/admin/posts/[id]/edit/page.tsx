@@ -19,7 +19,6 @@ const schema = z.object({
   tags: z.array(z.number()).optional(),
   cover_image: z.string().optional().nullable(),
   published_at: z.string().optional().nullable(),
-  author: z.string().uuid('ID do autor inválido'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -75,7 +74,6 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
           content: postRes.content,
           status: postRes.status as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
           published_at: postRes.published_at ? postRes.published_at.slice(0, 16) : null,
-          author: postRes.author_name || '',
           categories: postRes.categories?.map((c) => c.id) || [],
           tags: postRes.tags?.map((t) => t.id) || [],
           cover_image: postRes.cover_image ? String(postRes.cover_image.id) : null,
@@ -203,18 +201,6 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
               />
             </div>
           )}
-        </div>
-
-        {/* Author */}
-        <div>
-          <label htmlFor="author" className="block text-sm font-medium text-gray-700">ID do Autor (UUID)</label>
-          <input
-            id="author"
-            {...register('author')}
-            placeholder="uuid-do-autor"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-          />
-          {errors.author && <p className="text-red-500 text-sm mt-1">{errors.author.message}</p>}
         </div>
 
         {/* Categories */}

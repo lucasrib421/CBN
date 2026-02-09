@@ -95,6 +95,7 @@ export interface AdminPost {
   reading_time: number | null;
   created_at: string;
   updated_at: string;
+  author_id: string;
   author_name: string;
   categories: Category[];
   tags: Tag[];
@@ -109,7 +110,6 @@ export interface AdminPostWrite {
   status: string;
   published_at?: string | null;
   reading_time?: number | null;
-  author: string; // UUID
   categories: number[];
   tags: number[];
   cover_image?: number | null;

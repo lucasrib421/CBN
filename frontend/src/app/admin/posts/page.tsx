@@ -29,7 +29,7 @@ export default async function PostsPage(props: {
     )
   }
 
-  const totalPages = Math.ceil(posts.count / 10) // Assuming default page size is 10
+  const pageSize = 20
   const currentPage = parseInt(page)
 
   return (
@@ -146,9 +146,9 @@ export default async function PostsPage(props: {
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700">
-              Mostrando <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> a{' '}
+              Mostrando <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> a{' '}
               <span className="font-medium">
-                {Math.min(currentPage * 10, posts.count)}
+                {Math.min(currentPage * pageSize, posts.count)}
               </span>{' '}
               de <span className="font-medium">{posts.count}</span> resultados
             </p>

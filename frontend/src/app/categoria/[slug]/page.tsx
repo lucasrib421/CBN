@@ -20,7 +20,7 @@ async function getCategories(): Promise<Category[]> {
 
 async function getPostsByCategory(slug: string): Promise<PaginatedResponse<PostSummary>> {
   try {
-    return await fetchAPI<PaginatedResponse<PostSummary>>(`/posts/?category_slug=${slug}`);
+    return await fetchAPI<PaginatedResponse<PostSummary>>(`/posts/?category=${slug}`);
   } catch {
     return { count: 0, next: null, previous: null, results: [] };
   }
