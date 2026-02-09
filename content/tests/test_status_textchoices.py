@@ -28,7 +28,9 @@ def test_post_status_filter_supports_textchoices():
         status=PostStatus.PUBLISHED,
     )
 
-    published_ids = set(Post.objects.filter(status=PostStatus.PUBLISHED).values_list('id', flat=True))
+    published_ids = set(
+        Post.objects.filter(status=PostStatus.PUBLISHED).values_list('id', flat=True)
+    )
 
     assert published.id in published_ids
     assert draft.id not in published_ids

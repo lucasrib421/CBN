@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('media_app', '0001_initial'),
     ]
@@ -17,6 +16,15 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='media',
             name='image_type',
-            field=models.CharField(choices=[('IMAGE', 'Imagem'), ('VIDEO', 'Video'), ('AUDIO', 'Audio'), ('DOCUMENT', 'Documento')], default='IMAGE', max_length=50),
+            field=models.CharField(
+                choices=[
+                    ('IMAGE', 'Imagem'),
+                    ('VIDEO', 'Video'),
+                    ('AUDIO', 'Audio'),
+                    ('DOCUMENT', 'Documento'),
+                ],
+                default='IMAGE',
+                max_length=50,
+            ),
         ),
     ]

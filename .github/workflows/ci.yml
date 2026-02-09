@@ -23,6 +23,15 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     env:
       SECRET_KEY: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234
       DEBUG: "False"
@@ -36,6 +45,7 @@ jobs:
       CSRF_TRUSTED_ORIGINS: https://example.com
       JWT_ISSUER: http://localhost:8080/realms/cbn
       JWT_JWK_URL: http://localhost:8080/realms/cbn/protocol/openid-connect/certs
+      REDIS_URL: redis://127.0.0.1:6379/0
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,10 +70,10 @@ jobs:
         run: pytest --cov
 
       - name: Ruff lint
-        run: ruff check core homeNews painelControle setup conftest.py manage.py
+        run: ruff check core content accounts media_app navigation home homeNews painelControle conftest.py manage.py
 
       - name: Ruff format check
-        run: ruff format --check core/settings.py core/urls.py conftest.py homeNews/tests setup/tests
+        run: ruff format --check core content accounts media_app navigation home homeNews painelControle conftest.py manage.py
 
   frontend:
     runs-on: ubuntu-latest
@@ -93,6 +103,10 @@ jobs:
       - name: Frontend build
         env:
           NEXT_TELEMETRY_DISABLED: '1'
+          AUTH_SECRET: ci-build-secret
+          AUTH_KEYCLOAK_ID: cbn-frontend
+          AUTH_KEYCLOAK_SECRET: ci-build-secret
+          AUTH_KEYCLOAK_ISSUER: http://localhost:8080/realms/cbn
         run: npm run build
 
   security:

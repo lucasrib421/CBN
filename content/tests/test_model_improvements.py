@@ -17,7 +17,9 @@ def _author(name: str, username: str) -> Author:
 
 def test_post_queryset_published_and_recent():
     author = _author('Autor', 'autor-managers')
-    category = Category.objects.create(name='Categoria', slug='categoria', color='#112233', is_active=True)
+    category = Category.objects.create(
+        name='Categoria', slug='categoria', color='#112233', is_active=True
+    )
 
     first = Post.objects.create(
         title='Primeiro',
@@ -49,7 +51,9 @@ def test_post_queryset_published_and_recent():
 
 
 def test_category_color_validator_rejects_invalid_hex():
-    category = Category(name='Categoria Invalida', slug='categoria-invalida', color='invalid', is_active=True)
+    category = Category(
+        name='Categoria Invalida', slug='categoria-invalida', color='invalid', is_active=True
+    )
 
     with pytest.raises(ValidationError):
         category.full_clean()

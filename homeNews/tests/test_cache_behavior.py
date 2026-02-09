@@ -13,7 +13,9 @@ pytestmark = pytest.mark.django_db
 def _build_post(slug: str) -> Post:
     user = User.objects.create_user(username=f'user-{slug}', password='secret')
     author = Author.objects.create(user=user, name=f'Author {slug}')
-    category = Category.objects.create(name=f'Category {slug}', slug=f'cat-{slug}', color='#123456', is_active=True)
+    category = Category.objects.create(
+        name=f'Category {slug}', slug=f'cat-{slug}', color='#123456', is_active=True
+    )
     post = Post.objects.create(
         title=f'Post {slug}',
         subtitle='Sub',

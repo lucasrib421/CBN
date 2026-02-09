@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('navigation', '0001_initial'),
     ]
@@ -25,11 +24,26 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='menuitem',
             name='target',
-            field=models.CharField(blank=True, choices=[('_self', 'Mesma aba'), ('_blank', 'Nova aba'), ('_parent', 'Janela pai'), ('_top', 'Janela topo')], default='_self', max_length=20, null=True),
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ('_self', 'Mesma aba'),
+                    ('_blank', 'Nova aba'),
+                    ('_parent', 'Janela pai'),
+                    ('_top', 'Janela topo'),
+                ],
+                default='_self',
+                max_length=20,
+                null=True,
+            ),
         ),
         migrations.AlterField(
             model_name='redirect',
             name='url_type',
-            field=models.CharField(choices=[('permanent', '301 Permanente'), ('temporary', '302 Temporario')], default='permanent', max_length=20),
+            field=models.CharField(
+                choices=[('permanent', '301 Permanente'), ('temporary', '302 Temporario')],
+                default='permanent',
+                max_length=20,
+            ),
         ),
     ]

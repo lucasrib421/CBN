@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('accounts', '0003_alter_author_options_alter_author_name'),
         ('content', '0004_replace_status_fk_with_textchoices'),
@@ -39,12 +38,23 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='category',
             name='color',
-            field=models.CharField(max_length=7, null=True, validators=[django.core.validators.RegexValidator(message='A cor deve estar no formato hexadecimal #RRGGBB.', regex='^#[0-9A-Fa-f]{6}$')]),
+            field=models.CharField(
+                max_length=7,
+                null=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        message='A cor deve estar no formato hexadecimal #RRGGBB.',
+                        regex='^#[0-9A-Fa-f]{6}$',
+                    )
+                ],
+            ),
         ),
         migrations.AlterField(
             model_name='post',
             name='author',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='accounts.author'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, to='accounts.author'
+            ),
         ),
         migrations.AlterField(
             model_name='post',

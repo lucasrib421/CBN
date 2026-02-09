@@ -59,7 +59,9 @@ class TagViewSet(BaseAuthenticatedViewSet):
 
 
 class PostViewSet(BaseAuthenticatedViewSet):
-    queryset = Post.objects.select_related('author', 'cover_image').prefetch_related('categories', 'tags')
+    queryset = Post.objects.select_related('author', 'cover_image').prefetch_related(
+        'categories', 'tags'
+    )
     search_fields = ['title', 'subtitle', 'content', 'slug']
     ordering_fields = ['published_at', 'created_at', 'title']
     ordering = ['-published_at', '-created_at']

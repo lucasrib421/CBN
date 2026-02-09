@@ -21,13 +21,17 @@ def _post(slug: str, title: str, username: str) -> Post:
         author=author,
         status=PostStatus.PUBLISHED,
     )
-    category = Category.objects.create(name=f'Categoria-{slug}', slug=f'categoria-{slug}', color='#123456', is_active=True)
+    category = Category.objects.create(
+        name=f'Categoria-{slug}', slug=f'categoria-{slug}', color='#123456', is_active=True
+    )
     post.categories.add(category)
     return post
 
 
 def test_unique_home_section_post_constraint():
-    section = HomeSection.objects.create(title='Destaques', section_type='HIGHLIGHTS', order=1, is_active=True)
+    section = HomeSection.objects.create(
+        title='Destaques', section_type='HIGHLIGHTS', order=1, is_active=True
+    )
     post = _post('post-constraint-1', 'Post 1', 'constraint-user-1')
 
     HomeSectionItem.objects.create(section=section, post=post, order=1)
@@ -37,7 +41,9 @@ def test_unique_home_section_post_constraint():
 
 
 def test_unique_home_section_order_constraint():
-    section = HomeSection.objects.create(title='Top', section_type='HIGHLIGHTS', order=2, is_active=True)
+    section = HomeSection.objects.create(
+        title='Top', section_type='HIGHLIGHTS', order=2, is_active=True
+    )
     post_a = _post('post-constraint-2a', 'Post 2A', 'constraint-user-2a')
     post_b = _post('post-constraint-2b', 'Post 2B', 'constraint-user-2b')
 

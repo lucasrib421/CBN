@@ -24,7 +24,6 @@ def reverse_copy_status_fk_to_status_choice(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('content', '0002_add_post_status_choice'),
     ]

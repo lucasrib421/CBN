@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('content', '0001_initial'),
     ]
@@ -13,6 +12,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='post',
             name='status_choice',
-            field=models.CharField(choices=[('DRAFT', 'Rascunho'), ('PUBLISHED', 'Publicado'), ('ARCHIVED', 'Arquivado')], default='DRAFT', max_length=20),
+            field=models.CharField(
+                choices=[
+                    ('DRAFT', 'Rascunho'),
+                    ('PUBLISHED', 'Publicado'),
+                    ('ARCHIVED', 'Arquivado'),
+                ],
+                default='DRAFT',
+                max_length=20,
+            ),
         ),
     ]

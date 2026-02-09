@@ -8,6 +8,7 @@ class PostStatus(models.TextChoices):
     PUBLISHED = 'PUBLISHED', 'Publicado'
     ARCHIVED = 'ARCHIVED', 'Arquivado'
 
+
 class Category(models.Model):
     class CategoryQuerySet(models.QuerySet):
         def active(self):

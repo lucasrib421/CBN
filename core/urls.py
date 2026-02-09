@@ -9,15 +9,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # 2. Compatibilidade da API legada
     path('api/', include('homeNews.urls')),
-
     # 2.1 API versionada (v1)
     path('api/v1/', include(('homeNews.urls', 'homeNews'), namespace='v1')),
-
     # 2.2 Rotas legadas do painel
     path('api/painel/', include('painelControle.urls')),
-
     # 2.3 API versionada do painel
-    path('api/v1/painel/', include(('painelControle.urls', 'painelControle'), namespace='painel-v1')),
+    path(
+        'api/v1/painel/', include(('painelControle.urls', 'painelControle'), namespace='painel-v1')
+    ),
     # 3. Rota do App Setup (Se você for usar algo de lá, senão é opcional)
     path('setup-rotas/', include('setup.urls')),
     # 4. Documentação da API (drf-spectacular)
