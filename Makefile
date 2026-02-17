@@ -5,7 +5,7 @@
 # Ajuda: make help
 # ============================================================
 
-.PHONY: help up down build rebuild logs logs-api logs-front logs-db logs-kc \
+.PHONY: help up down build rebuild rebuild-front logs logs-api logs-front logs-db logs-kc \
         migrate makemigrations superuser shell dbshell seed \
         npm-install npm-install-dev lint collectstatic \
         status ps clean reset setup \
@@ -93,6 +93,11 @@ restart-api: ## Reinicia apenas a API
 
 restart-front: ## Reinicia apenas o frontend
 	docker compose restart frontend
+
+rebuild-front: ## Rebuilda o frontend do zero (resolve erros de node_modules)
+	docker compose rm -sf frontend
+	docker compose build --no-cache frontend
+	docker compose up -d -V frontend
 
 # ------------------------------------------------------------
 # Logs

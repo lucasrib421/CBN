@@ -8,7 +8,7 @@ RUN npm install
 
 COPY . .
 
-RUN chown -R node:node /app
+RUN mkdir -p .next && chown -R node:node /app
 
 USER node
 
