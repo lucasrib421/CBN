@@ -1,77 +1,114 @@
-from rest_framework import viewsets, status, filters
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, DjangoModelPermissions
+from rest_framework import filters, permissions, viewsets
+from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
-from django.shortcuts import get_object_or_404
-from django.db.models import Q, Count, Prefetch
-from django.utils import timezone
-from datetime import timedelta
 
-from setup.models import Media, Category, Tag, Post, HomeSection, HomeSectionItem, Menu, MenuItem
-from homeNews.serializers import (
-    MediaSerializer, CategorySerializer, TagSerializer, PostSerializer, 
-    HomeSectionSerializer, HomeSectionItemSerializer, MenuSerializer, MenuItemSerializer
+from content.models import Category, Post, Tag
+from home.models import HomeSection, HomeSectionItem
+from media_app.models import Media
+from navigation.models import Menu, MenuItem
+from painelControle.serializers import (
+    CategorySerializer,
+    HomeSectionItemSerializer,
+    HomeSectionSerializer,
+    MenuItemSerializer,
+    MenuSerializer,
+    PainelMediaSerializer,
+    PostReadSerializer,
+    PostWriteSerializer,
+    TagSerializer,
 )
 
-#from .filters import PostFilter, CategoryFilter
-#from .pagination import StandardResultsSetPagination, LargeResultsSetPagination
-#from .throttling import PostCreateRateThrottle, PostUpdateRateThrottle
 
-# Create your views here.
-class BaseViewSet(viewsets.ModelViewSet):
-    """
-    A base viewset that provides default `list()`, `create()`, `retrieve()`,
-    `update()`, and `destroy()` actions.
-    """
-    permission_classes = [IsAuthenticated]  # Define your permission classes here
+class IsAuthorOrAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated)
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_staff:
+            return True
+        author = getattr(obj, 'author', None)
+        return bool(author and author.user_id == request.user.id)
+
+
+class BaseAuthenticatedViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
 
-    def get_queryset(self):
-        """
-        Sobrescreva este método em ViewSets filhos para filtros personalizados
-        """
-        return super().get_queryset()
-    
-    def get_permissions(self):
-        """
-        Permissões dinâmicas baseadas na ação
-        """
-        if self.action in ['list', 'retrieve']:
-            return [AllowAny()]
-        elif self.action in ['create']:
-            return [IsAuthenticated()]
-        elif self.action in ['update', 'partial_update']:
-            return [IsAuthorOrReadOnly()]
-        elif self.action in ['destroy']:
-            return [IsAdminUser()]
-        return super().get_permissions()
-    
-    def perform_create(self, serializer):
-        """
-        Hook para ações durante a criação
-        """
-        # Exemplo: Adiciona o usuário atual como autor
-        if hasattr(self.request.user, 'author_profile'):
-            serializer.save(author=self.request.user.author_profile)
-        else:
-            serializer.save()
-    
-    def perform_update(self, serializer):
-        """
-        Hook para ações durante a atualização
-        """
-        # Exemplo: Registra quem modificou
-        serializer.save(updated_by=self.request.user)
 
-
-
-# Media, Category, Tag, Post, HomeSection, HomeSectionItem, Menu, MenuItem
-
-class MediaViewSet(BaseViewSet):
+class MediaViewSet(BaseAuthenticatedViewSet):
     queryset = Media.objects.all()
-    serializer_class = MediaSerializer
-    search_fields = ['alt_text']
-    ordering_fields = ['created_at']
-    ordering = ['-created_at']
+    serializer_class = PainelMediaSerializer
+    search_fields = ['title', 'alt_text']
+    ordering_fields = ['uploaded_at']
+    ordering = ['-uploaded_at']
 
+
+class CategoryViewSet(BaseAuthenticatedViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    search_fields = ['name', 'slug']
+    ordering_fields = ['name']
+    ordering = ['name']
+
+
+class TagViewSet(BaseAuthenticatedViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    search_fields = ['name', 'slug']
+    ordering_fields = ['name']
+    ordering = ['name']
+
+
+class PostViewSet(BaseAuthenticatedViewSet):
+    queryset = Post.objects.select_related('author', 'cover_image').prefetch_related(
+        'categories', 'tags'
+    )
+    search_fields = ['title', 'subtitle', 'content', 'slug']
+    ordering_fields = ['published_at', 'created_at', 'title']
+    ordering = ['-published_at', '-created_at']
+    permission_classes = [permissions.IsAuthenticated, IsAuthorOrAdmin]
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return PostReadSerializer
+        return PostWriteSerializer
+
+    def perform_create(self, serializer):
+        author = getattr(self.request.user, 'author_profile', None)
+        if author is None:
+            raise ValidationError({'author': 'Usuário não possui perfil de autor vinculado.'})
+        serializer.save(author=author)
+
+    def perform_update(self, serializer):
+        serializer.save(author=serializer.instance.author)
+
+
+class HomeSectionViewSet(BaseAuthenticatedViewSet):
+    queryset = HomeSection.objects.all()
+    serializer_class = HomeSectionSerializer
+    search_fields = ['title', 'section_type']
+    ordering_fields = ['order', 'title']
+    ordering = ['order']
+
+
+class HomeSectionItemViewSet(BaseAuthenticatedViewSet):
+    queryset = HomeSectionItem.objects.select_related('section', 'post')
+    serializer_class = HomeSectionItemSerializer
+    ordering_fields = ['order']
+    ordering = ['order']
+
+
+class MenuViewSet(BaseAuthenticatedViewSet):
+    queryset = Menu.objects.all()
+    serializer_class = MenuSerializer
+    search_fields = ['title', 'slug']
+    ordering_fields = ['title', 'created_at']
+    ordering = ['title']
+
+
+class MenuItemViewSet(BaseAuthenticatedViewSet):
+    queryset = MenuItem.objects.select_related('menu', 'parent')
+    serializer_class = MenuItemSerializer
+    search_fields = ['label', 'url']
+    ordering_fields = ['order', 'label']
+    ordering = ['order']

@@ -13,16 +13,19 @@ services:
     # Salva os dados numa pasta local para não perder quando desligar
     volumes:
       - ./local_pg_data:/var/lib/postgresql/data
+      - ./docker/postgres/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
+    mem_limit: 512m
+    cpus: 1.00
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: cbn_keycloak
-    command: start-dev # Modo de desenvolvimento (não exige HTTPS)
+    command: start-dev --import-realm # Modo de desenvolvimento (não exige HTTPS)
     environment:
       # Configuração do Admin
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
@@ -40,7 +43,26 @@ services:
     ports:
       - "8080:8080" # Porta padrão do Keycloak
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    volumes:
+      - ./docker/keycloak/cbn-realm-export.json:/opt/keycloak/data/import/cbn-realm-export.json:ro
+    mem_limit: 512m
+    cpus: 1.00
+
+  redis:
+    image: redis:7-alpine
+    container_name: cbn_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 256m
+    cpus: 0.50
   # (Opcional) DBeaver ou Adminer web se quiser ver o banco sem instalar nada
   # adminer:
   #   image: adminer
@@ -63,6 +85,8 @@ services:
     depends_on:
       db:
         condition: service_healthy # Só liga o Django quando o Banco estiver pronto
+      redis:
+        condition: service_healthy
 
   frontend:
     build: 
@@ -72,13 +96,20 @@ services:
     restart: always
     volumes:
       - ./frontend:/app
-      - /app/node_modules # Truque vital: usa os módulos do Linux (container), não do Windows
+      - /app/node_modules
+      - /app/.next
     ports:
-      - "5173:5173"
+      - "3000:3000"
     environment:
-      # Aponta para o backend local
-      - VITE_API_URL=http://localhost:8000
-      # Ajuda o hot-reload a funcionar melhor no Windows/WSL
-      - CHOKIDAR_USEPOLLING=true
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - INTERNAL_API_URL=http://api:8000
+      - AUTH_SECRET=${AUTH_SECRET:-cbn-dev-auth-secret-change-in-production}
+      - AUTH_KEYCLOAK_ID=${AUTH_KEYCLOAK_ID:-cbn-frontend}
+      - AUTH_KEYCLOAK_SECRET=${AUTH_KEYCLOAK_SECRET:-cbn-dev-secret-change-in-production}
+      - AUTH_KEYCLOAK_ISSUER=${AUTH_KEYCLOAK_ISSUER:-http://localhost:8080/realms/cbn}
+      - KEYCLOAK_INTERNAL_URL=http://keycloak:8080
+      - AUTH_TRUST_HOST=true
     depends_on:
       - api
+    mem_limit: 1g
+    cpus: 1.00

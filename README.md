@@ -1,139 +1,281 @@
-# 📰 Backend - Portal de Notícias
+# CBN - Corrupção Brasileira News
 
-Este repositório contém o código fonte do Backend (API) do nosso portal jornalístico. O projeto foi construído focando em escalabilidade e facilidade de desenvolvimento utilizando containers.
+Portal jornalístico com Django REST API (backend) e Next.js (frontend). Autenticação via Keycloak (OIDC). Projeto 100% Dockerizado.
 
-## 🛠 Tecnologias Principais
+## Tecnologias
 
-* **Linguagem:** Python 3.12+
-* **Framework Web:** Django 6.0
-* **API:** Django Rest Framework (DRF)
-* **Banco de Dados:** PostgreSQL 15
-* **Infraestrutura:** Docker & Docker Compose
-* **Servidor de Aplicação:** Gunicorn (Produção)
-* **Proxy Reverso:** Traefik (Produção)
+| Camada | Stack |
+|--------|-------|
+| **Backend** | Python 3.12, Django 6.0, Django REST Framework, drf-spectacular |
+| **Frontend** | Next.js 16, React 19, TypeScript, Tailwind CSS 4, Auth.js v5 |
+| **Banco de Dados** | PostgreSQL 15 |
+| **Cache** | Redis 7 |
+| **Autenticação** | Keycloak 26 (OIDC / JWT RS256) + Auth.js v5 |
+| **Infra Dev** | Docker Compose, Makefile |
+| **Infra Prod** | Traefik (SSL), Gunicorn, Nginx |
+| **CI/CD** | GitHub Actions (lint, test, build, security) |
 
----
+## Quick Start
 
-## 🚀 Como rodar o projeto localmente
+**Requisitos:** [Git](https://git-scm.com/) + [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-Graças ao Docker, você não precisa instalar Python ou PostgreSQL na sua máquina. Siga os passos abaixo:
-
-### 1. Pré-requisitos
-Certifique-se de ter instalado:
-* [Git](https://git-scm.com/)
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Inicie ele antes de começar)
-
-### 2. Clonar o repositório
 ```bash
-git clone [https://github.com/lucasrib421/CBN](https://github.com/lucasrib421/CBN)
-cd SEU-REPOSITORIO
+git clone https://github.com/GabrielDavi7/CBN.git
+cd CBN
+make setup
 ```
 
-### 3. Configurar Variáveis de Ambiente
-Crie um arquivo chamado .env na raiz do projeto. Copie e cole o conteúdo abaixo (configuração padrão para desenvolvimento):
+O `make setup` faz tudo automaticamente:
+1. Cria os arquivos `.env` a partir do `.env.example`
+2. Builda as imagens Docker
+3. Sobe todos os containers
+4. Roda as migrations do Django
+5. Carrega dados iniciais (categorias, tags, status, roles, menu)
+6. Importa o realm `cbn` no Keycloak a partir de `docker/keycloak/cbn-realm-export.json`
 
-```
-# Configurações do Django
-DEBUG=True
-SECRET_KEY=chave-secreta-para-desenvolvimento-local
-ALLOWED_HOSTS=localhost,127.0.0.1
+Depois do setup, crie um superusuário:
 
-# Configurações do Banco de Dados (Docker)
-POSTGRES_DB=news_local_db
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_HOST=db
-POSTGRES_PORT=5432
+```bash
+make superuser
 ```
 
-### 4. Subir os Containers
-Execute o comando abaixo para construir e iniciar o ambiente:
+## URLs do Ambiente Local
 
-```
-docker compose up -d
-```
-Isso vai baixar as imagens, instalar as dependências e subir o banco de dados e a API.
+| Serviço | URL |
+|---------|-----|
+| Frontend (Next.js) | http://localhost:3000 |
+| Admin Panel | http://localhost:3000/admin |
+| API (Django) | http://localhost:8000/api/v1/ |
+| Django Admin | http://localhost:8000/admin/ |
+| Swagger UI | http://localhost:8000/api/schema/swagger/ |
+| ReDoc | http://localhost:8000/api/schema/redoc/ |
+| Keycloak | http://localhost:8080 |
 
-### 5. Configurar o Banco de Dados
-Na primeira vez, você precisa criar as tabelas e um usuário administrador:
+## Comandos do Makefile
 
-```
-# Criar as tabelas no banco
-docker compose exec api python manage.py migrate
+Rode `make help` para ver todos os comandos. Os mais usados:
 
-# Criar um superusuário (Siga as instruções na tela)
-docker compose exec api python manage.py createsuperuser
-```
+### Ciclo de Vida
 
-### 🔗 Acessando o Projeto
-Após rodar os comandos acima, o sistema estará disponível em:
-
-Painel Admin: http://127.0.0.1:8000/admin
-
-API Root: http://127.0.0.1:8000/
-
-## ⚠️ Nota Importante sobre o Banco de Dados
-Para evitar conflitos com bancos de dados já instalados na sua máquina (como um Postgres local rodando na porta 5432), o container do banco expõe a porta 5433 para o host.
-
-Se você quiser conectar uma ferramenta externa (DBeaver, PGAdmin, SQLTools) ao banco do Docker, use:
-
-Host: localhost
-
-Port: 5433 (Não use 5432)
-
-User/Pass: postgres / postgres
-
-Database: news_local_db
-
-
-## 📦 Comandos Úteis no Dia a Dia
-Sempre que precisar rodar comandos do Django (manage.py), use o prefixo docker compose exec api:   
-
-Criar novas migrações (após editar models):
-```
-docker compose exec api python manage.py makemigrations
+```bash
+make up              # Sobe todos os containers
+make down            # Para todos os containers
+make restart         # Reinicia tudo
+make restart-api     # Reinicia apenas a API
+make restart-front   # Reinicia apenas o frontend
+make build           # Builda as imagens
+make rebuild         # Rebuilda sem cache e sobe
 ```
 
-Aplicar migrações:
-```
-docker compose exec api python manage.py migrate
-```
+### Django
 
-Derrubar o ambiente:
-```
-docker compose down
-```
-
-Ver logs de erro:
-```
-docker compose logs -f api
+```bash
+make migrate         # Roda as migrations
+make makemigrations  # Cria novas migrations
+make seed            # Carrega dados iniciais
+make superuser       # Cria superusuário
+make shell           # Shell interativo do Django
+make collectstatic   # Coleta arquivos estáticos
 ```
 
-## ☁️ Deploy (Produção)
-Para o ambiente de produção, utilizamos o arquivo docker-compose.prod.yml, que configura o Traefik (SSL automático) e o Gunicorn. Não use este arquivo localmente.
+### Frontend
 
-## 🎨 Frontend (React + Vite)
+```bash
+make lint                        # Roda ESLint
+make npm-install PKG=axios       # Instala dependência
+make npm-install-dev PKG=vitest  # Instala devDependência
+```
 
-O projeto utiliza React com TypeScript, Vite e TailwindCSS. A estrutura de pastas segue uma divisão lógica entre Site Público e Painel Admin.
+## Testes e Qualidade
 
-### Estrutura de Pastas
-* `src/pages/website`: Páginas públicas (Home, Notícia, Categorias).
-* `src/pages/admin`: Páginas do painel de controle.
-* `src/components`: Componentes reutilizáveis (Botões, Inputs).
-* `src/services`: Configuração do Axios e chamadas à API.
+### Backend (dentro do container API)
 
-### Como rodar o Frontend
-O frontend sobe automaticamente junto com o `docker compose up -d`.
-* Acesse em: [http://localhost:5173](http://localhost:5173)
+```bash
+docker compose exec api pytest
+docker compose exec api pytest --cov
+docker compose exec api ruff check core content accounts media_app navigation home homeNews painelControle conftest.py manage.py
+docker compose exec api ruff format --check core content accounts media_app navigation home homeNews painelControle conftest.py manage.py
+docker compose exec -e HOME=/tmp api pip-audit
+```
 
-### Comandos Úteis (Dentro do container ou pasta local)
+### Frontend (dentro do container frontend)
 
-Caso precise instalar novas bibliotecas:
-1. Pare o docker: `docker compose down`
-2. Instale localmente: `cd frontend && npm install nome-da-lib`
-3. Suba novamente: `docker compose up -d --build`
+```bash
+docker compose exec frontend npm run lint
+docker compose exec frontend npm run test
+docker compose exec frontend npm run build
+docker compose exec frontend npm audit --audit-level=high
+```
 
-### Variáveis de Ambiente
-O frontend se comunica com a API através da variável `VITE_API_URL`.
-* **Dev:** Aponta automaticamente para `http://localhost:8000`.
-* **Prod:** É compilado apontando para `https://api.corrupcaobrasileira.com`.
+## CI/CD
+
+Pipeline GitHub Actions em `.github/workflows/ci.yml` com 3 jobs paralelos:
+
+- `backend`: `manage.py check --deploy`, `pytest --cov`, `ruff check`, `ruff format --check` (com PostgreSQL e Redis)
+- `frontend`: `npm run lint`, `npm run test`, `npm run build`
+- `security`: `pip-audit` e `npm audit --audit-level=high`
+
+Triggers:
+- push para `dev` e `main`
+- pull request para `main`
+
+Atualizações automáticas de dependências em `.github/dependabot.yml` (pip, npm e GitHub Actions, semanal).
+
+### Logs e Debug
+
+```bash
+make logs            # Logs de todos os serviços (ao vivo)
+make logs-api        # Logs da API
+make logs-front      # Logs do frontend
+make logs-db         # Logs do PostgreSQL
+make logs-kc         # Logs do Keycloak
+make status          # Status dos containers + URLs
+make check           # Health check de todos os serviços
+make docs            # Abre Swagger UI no navegador
+```
+
+### Acesso Direto aos Containers
+
+```bash
+make api-bash        # Terminal bash na API
+make front-bash      # Terminal sh no frontend
+make dbshell         # psql conectado ao banco
+```
+
+### Limpeza
+
+```bash
+make clean           # Para tudo e remove volumes (APAGA dados!)
+make reset           # Reset completo: limpa, rebuilda, migrate + seed
+```
+
+## Arquitetura
+
+### Backend — Django Domain Apps
+
+O backend é dividido em 5 domain apps + 2 apps de API:
+
+| App | Modelos | Responsabilidade |
+|-----|---------|------------------|
+| `content` | Post, Category, Tag, PostStatus | Conteúdo editorial |
+| `accounts` | Author, Role | Autores e papéis |
+| `media_app` | Media | Upload e gerenciamento de mídia |
+| `navigation` | Menu, MenuItem, Redirect | Navegação e redirects SEO |
+| `home` | HomeSection, HomeSectionItem | Layout da home page |
+| `homeNews` | — (views/serializers) | API pública read-only v1 |
+| `painelControle` | — (views/serializers) | API admin autenticada v1 |
+
+### Frontend — Next.js 16
+
+| Rota | Tipo | Descrição |
+|------|------|-----------|
+| `/` | SSR | Home page com seções |
+| `/[slug]` | SSR | Detalhe do post |
+| `/categoria/[slug]` | SSR | Posts por categoria |
+| `/admin` | Protegido | Dashboard com estatísticas |
+| `/admin/posts` | Protegido | Lista de publicações |
+| `/admin/posts/new` | Protegido | Criar publicação |
+| `/admin/posts/[id]/edit` | Protegido | Editar publicação |
+| `/admin/media` | Protegido | Biblioteca de mídia |
+| `/admin/categories` | Protegido | CRUD de categorias |
+| `/admin/home-sections` | Protegido | Editor de seções da home |
+
+Autenticação do admin via Auth.js v5 + Keycloak (client confidencial).
+
+### Infraestrutura
+
+- **Dev:** `docker-compose.yml` — Postgres (porta 5433 no host), Keycloak (8080), Django (8000), Next.js (3000), Redis (6379)
+- **Prod:** `docker-compose.prod.yml` — Traefik para SSL/reverse proxy, Gunicorn, Nginx para frontend
+- **Cache:** Redis 7 — cache de endpoints públicos com invalidação via signals
+- **Database:** PostgreSQL 15. Django usa `cbn_db`, Keycloak usa `keycloak` — ambos na mesma instância
+
+## Estrutura do Projeto
+
+```
+CBN/
+├── core/                  # Configurações Django (settings, urls, wsgi)
+├── content/               # App: Post, Category, Tag, PostStatus
+├── accounts/              # App: Author, Role
+├── media_app/             # App: Media
+├── navigation/            # App: Menu, MenuItem, Redirect
+├── home/                  # App: HomeSection, HomeSectionItem
+├── homeNews/              # API pública (read-only, versionada v1)
+├── painelControle/        # API admin (autenticada, CRUD completo)
+├── frontend/              # Next.js 16 + TypeScript + Tailwind CSS 4
+│   ├── src/
+│   │   ├── app/           # App Router (pages, layouts)
+│   │   │   ├── admin/     # Painel admin (protegido)
+│   │   │   └── api/auth/  # Auth.js route handler
+│   │   ├── components/    # Componentes reutilizáveis
+│   │   ├── lib/           # API clients, utilitários
+│   │   ├── types/         # Interfaces TypeScript
+│   │   └── auth.ts        # Auth.js v5 config (Keycloak)
+│   └── middleware.ts       # Proteção de rotas /admin/*
+├── docker/
+│   ├── keycloak/          # Realm export + README
+│   └── postgres/          # Script de init do banco
+├── .github/
+│   ├── workflows/ci.yml   # Pipeline CI (lint, test, build, security)
+│   └── dependabot.yml     # Atualizações automáticas
+├── docker-compose.yml     # Ambiente de desenvolvimento
+├── docker-compose.prod.yml # Ambiente de produção
+├── Dockerfile             # Imagem da API Django
+├── Makefile               # Comandos de desenvolvimento
+└── .env.example           # Template de variáveis de ambiente
+```
+
+## API
+
+A API segue o padrão REST com Django REST Framework, versionada em `/api/v1/`.
+
+**Endpoints Públicos** (`/api/v1/`):
+- `GET /api/v1/posts/` — Lista de posts publicados (paginada, filtros: titulo, categoria, tag, autor)
+- `GET /api/v1/posts/{slug}/` — Detalhe de um post
+- `GET /api/v1/categories/` — Categorias
+- `GET /api/v1/tags/` — Tags
+- `GET /api/v1/home/` — Seções da home
+- `GET /api/v1/menus/` — Menus de navegação
+- `GET /api/v1/redirects/` — Redirects SEO
+
+Todos os endpoints públicos possuem:
+- Paginação (`PageNumberPagination`, 20 por página)
+- Rate limiting (anônimo: 100/hora, autenticado: 1000/hora)
+- Cache headers (`Cache-Control`, `ETag`)
+
+**Endpoints Admin** (`/api/v1/painel/`):
+- CRUD completo para: Posts, Categories, Tags, Media, HomeSections, HomeSectionItems, Menus, MenuItems
+- Autenticação via JWT (Keycloak)
+
+**Documentação interativa:** Swagger UI em http://localhost:8000/api/schema/swagger/
+
+## Dados Iniciais (Seed)
+
+O comando `make seed` carrega dados iniciais para desenvolvimento:
+
+- **Categorias:** Politica, Economia, Judiciario, Investigacoes, Internacional
+- **Tags:** Corrupcao, Lavagem de Dinheiro, Licitacao, Congresso, STF
+- **Roles:** Editor Chefe, Reporter, Colunista
+- **Menu:** Menu Principal com 5 itens
+
+## Conexao Externa ao Banco
+
+Para conectar DBeaver, PGAdmin ou outra ferramenta:
+
+| Campo | Valor |
+|-------|-------|
+| Host | `localhost` |
+| Porta | `5433` (nao `5432`) |
+| Usuario | `postgres` |
+| Senha | `postgres` |
+| Banco | `cbn_db` |
+
+## Deploy (Producao)
+
+O ambiente de producao usa `docker-compose.prod.yml` com Traefik (SSL automatico via Let's Encrypt), Gunicorn e Nginx. Nao use este arquivo localmente.
+
+## Keycloak
+
+- Realm versionado: `docker/keycloak/cbn-realm-export.json`
+- Compose de desenvolvimento sobe o Keycloak com `start-dev --import-realm`
+- Client: `cbn-frontend` (confidential, requer secret)
+- Consulte `docker/keycloak/README.md` para detalhes do realm e do import automatico
