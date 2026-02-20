@@ -11,7 +11,7 @@ jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 Markdown==3.10.1
 packaging==25.0
-psycopg==3.3.2
+psycopg==3.3.3
 psycopg-binary==3.3.2
 python-dotenv==1.2.1
 PyYAML==6.0.3
