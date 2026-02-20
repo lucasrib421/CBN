@@ -10,7 +10,7 @@ inflection==0.5.1
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 Markdown==3.10.1
-packaging==25.0
+packaging==26.0
 psycopg==3.3.2
 psycopg-binary==3.3.2
 python-dotenv==1.2.1
