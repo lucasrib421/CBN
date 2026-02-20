@@ -27,6 +27,6 @@ model-bakery==1.23.3
 pytest==9.0.2
 pytest-cov==7.0.0
 pytest-django==4.11.1
-ruff==0.15.0
+ruff==0.15.1
 pip-audit==2.10.0
 django-redis==6.0.0
