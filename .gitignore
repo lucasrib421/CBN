@@ -45,3 +45,9 @@ Desktop.ini
 *.log
 npm-debug.log*
 /.sisyphus
+
+# --- Artefatos de teste/build local ---
+.coverage
+.coverage.*
+htmlcov/
+frontend/.next/
