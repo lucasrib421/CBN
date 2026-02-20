@@ -23,7 +23,7 @@ uritemplate==4.2.0
 whitenoise==6.11.0
 djangorestframework-simplejwt[crypto]
 factory-boy==3.3.3
-model-bakery==1.23.2
+model-bakery==1.23.3
 pytest==9.0.2
 pytest-cov==7.0.0
 pytest-django==4.11.1
