@@ -14,7 +14,7 @@ type PostRichTextEditorProps = {
   error?: string
 }
 
-const LINK_PROTOCOL_PATTERN = /^(https?:|mailto:)/i
+const LINK_PROTOCOL_PATTERN = /^(https?:|mailto:|\/|#)/i
 
 function ToolbarButton({
   label,
@@ -64,6 +64,7 @@ export default function PostRichTextEditor({
         openOnClick: false,
         autolink: true,
         protocols: ['http', 'https', 'mailto'],
+        isAllowedUri: (url: string) => LINK_PROTOCOL_PATTERN.test(url),
       }),
     ],
     content: normalizedValue,

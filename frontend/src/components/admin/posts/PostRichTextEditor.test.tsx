@@ -70,6 +70,7 @@ describe('PostRichTextEditor', () => {
   beforeEach(() => {
     commandChain.toggleBold.mockClear()
     commandChain.setLink.mockClear()
+    commandChain.unsetLink.mockClear()
     mockEditor.isActive.mockClear()
   })
 
@@ -109,5 +110,31 @@ describe('PostRichTextEditor', () => {
 
     promptSpy.mockRestore()
   })
-})
 
+  test('accepts internal links from toolbar prompt', () => {
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('/categoria/politica')
+
+    render(<PostRichTextEditor value="<p>Texto</p>" onChange={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Link' }))
+
+    expect(commandChain.setLink).toHaveBeenCalledWith({
+      href: '/categoria/politica',
+      rel: 'noopener noreferrer',
+      target: '_blank',
+    })
+
+    promptSpy.mockRestore()
+  })
+
+  test('ignores unsupported link protocols from toolbar prompt', () => {
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('javascript:alert(1)')
+
+    render(<PostRichTextEditor value="<p>Texto</p>" onChange={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Link' }))
+
+    expect(commandChain.setLink).not.toHaveBeenCalled()
+    expect(commandChain.unsetLink).not.toHaveBeenCalled()
+
+    promptSpy.mockRestore()
+  })
+})
