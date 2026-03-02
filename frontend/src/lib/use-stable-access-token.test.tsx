@@ -43,3 +43,21 @@ test('throws explicit error when no access token can be resolved', async () => {
 
   await expect(resolveAccessToken()).rejects.toThrow('Sessão expirada. Faça login novamente.')
 })
+
+test('clears stale token when access token disappears and re-fetches session token', async () => {
+  mockedGetSession.mockResolvedValue({
+    accessToken: 'session-token-renewed',
+  } as any)
+
+  const { result, rerender } = renderHook(
+    ({ token }: { token?: string }) => useStableAccessToken(token),
+    { initialProps: { token: 'old-hook-token' } },
+  )
+
+  await expect(result.current()).resolves.toBe('old-hook-token')
+
+  rerender({ token: undefined })
+
+  await expect(result.current()).resolves.toBe('session-token-renewed')
+  expect(mockedGetSession).toHaveBeenCalledTimes(1)
+})

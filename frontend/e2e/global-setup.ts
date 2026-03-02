@@ -1,4 +1,5 @@
-import { execSync } from 'node:child_process'
+import { execFileSync, execSync } from 'node:child_process'
+import fs from 'node:fs'
 import path from 'node:path'
 
 async function waitForUrl(url: string, timeoutMs = 180_000): Promise<void> {
@@ -21,6 +22,9 @@ async function waitForUrl(url: string, timeoutMs = 180_000): Promise<void> {
 
 export default async function globalSetup(): Promise<void> {
   const repoRoot = path.resolve(__dirname, '../..')
+  const venvPython = path.join(repoRoot, '.venv-pr', 'bin', 'python')
+  const pythonInterpreter =
+    process.env.E2E_PYTHON || (fs.existsSync(venvPython) ? venvPython : 'python3')
   const composeUpCmd =
     process.env.E2E_SKIP_BUILD === '1'
       ? 'docker compose up -d -V db redis keycloak api frontend'
@@ -35,7 +39,7 @@ export default async function globalSetup(): Promise<void> {
   await waitForUrl('http://localhost:8000/api/v1/posts/')
   await waitForUrl('http://localhost:3000')
 
-  execSync('.venv-pr/bin/python scripts/e2e_seed.py', {
+  execFileSync(pythonInterpreter, ['scripts/e2e_seed.py'], {
     cwd: repoRoot,
     stdio: 'inherit',
     env: {

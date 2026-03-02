@@ -9,9 +9,7 @@ export function useStableAccessToken(accessToken?: string) {
   const tokenRef = useRef<string | null>(accessToken || null)
 
   useEffect(() => {
-    if (accessToken) {
-      tokenRef.current = accessToken
-    }
+    tokenRef.current = accessToken || null
   }, [accessToken])
 
   return useCallback(async () => {

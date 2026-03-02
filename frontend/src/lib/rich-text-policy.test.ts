@@ -24,9 +24,17 @@ describe('rich text policy', () => {
     expect(sanitized).toContain('<blockquote>cita</blockquote>')
   })
 
+  test('keeps safe relative and anchor links', () => {
+    const sanitized = sanitizeRichTextHtml(
+      '<a href="/categoria/politica">Interno</a><a href="#topo">Topo</a>',
+    )
+
+    expect(sanitized).toContain('href="/categoria/politica"')
+    expect(sanitized).toContain('href="#topo"')
+  })
+
   test('extracts readable plain text', () => {
     const text = extractPlainTextFromRichText('<h2>Titulo</h2><p>um <strong>dois</strong></p>')
     expect(text).toBe('Titulo um dois')
   })
 })
-

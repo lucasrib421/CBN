@@ -20,7 +20,7 @@ export const RICH_TEXT_ALLOWED_TAGS = [
 
 export const RICH_TEXT_ALLOWED_ATTRIBUTES = ['href', 'target', 'rel', 'src', 'alt']
 
-const SAFE_URI_PATTERN = /^(https?:|mailto:)/i
+const SAFE_URI_PATTERN = /^(\/|#|https?:|mailto:)/i
 
 export function sanitizeRichTextHtml(html: string): string {
   return DOMPurify.sanitize(html, {
@@ -38,4 +38,3 @@ export function extractPlainTextFromRichText(html: string): string {
     .replace(/\s+/g, ' ')
     .trim()
 }
-

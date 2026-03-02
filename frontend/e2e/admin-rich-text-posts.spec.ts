@@ -2,6 +2,15 @@ import { expect, test } from '@playwright/test'
 
 const E2E_EDITOR_USERNAME = process.env.E2E_EDITOR_USERNAME || 'e2e_editor'
 const E2E_EDITOR_PASSWORD = process.env.E2E_EDITOR_PASSWORD || 'e2e-editor-123'
+const E2E_KEYCLOAK_REALM = process.env.E2E_KEYCLOAK_REALM || process.env.AUTH_KEYCLOAK_REALM
+const KEYCLOAK_AUTH_PATH_RE = /\/realms\/[^/]+\/protocol\/openid-connect\/auth/
+
+function isKeycloakAuthUrl(url: string): boolean {
+  if (E2E_KEYCLOAK_REALM) {
+    return url.includes(`/realms/${E2E_KEYCLOAK_REALM}/protocol/openid-connect/auth`)
+  }
+  return KEYCLOAK_AUTH_PATH_RE.test(url)
+}
 
 async function loginViaKeycloak(page: import('@playwright/test').Page): Promise<void> {
   await page.goto('/api/auth/signin?callbackUrl=/admin/posts/new')
@@ -14,7 +23,7 @@ async function loginViaKeycloak(page: import('@playwright/test').Page): Promise<
     await providerButton.click()
   }
 
-  if (page.url().includes('/realms/cbn/protocol/openid-connect/auth')) {
+  if (isKeycloakAuthUrl(page.url())) {
     await page.locator('input[name="username"]').fill(E2E_EDITOR_USERNAME)
     await page.locator('input[name="password"]').fill(E2E_EDITOR_PASSWORD)
     await page.locator('#kc-login').click()
