@@ -50,6 +50,7 @@ export default function PostRichTextEditor({
   const normalizedValue = value || '<p></p>'
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: {
