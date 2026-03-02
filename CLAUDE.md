@@ -68,10 +68,15 @@ make reset           # Full reset: clean + rebuild + migrate + seed
 
 **Django settings module:** `core.settings`
 
-**Three Django apps:**
-- **`setup`** — Contains ALL models (the data layer). Every model lives here: `Media`, `Status`, `Category`, `Tag`, `Role`, `Author`, `Post`, `HomeSection`, `HomeSectionItem`, `Menu`, `MenuItem`, `Redirect`. All models are registered in `setup/admin.py`. This app has no views of its own (empty `urls.py`). Fixtures live in `setup/fixtures/initial_data.json`.
-- **`homeNews`** — Public read-only API. Uses `ReadOnlyModelViewSet` for posts, categories, tags, home sections, and menus. Posts are looked up by slug, filtered to `status__name='PUBLISHED'` only. Has custom `PostFilter` for filtering by title, category slug, tag slug, and author name.
-- **`painelControle`** — Admin/authenticated API (work in progress). Uses a `BaseViewSet` with dynamic permissions (AllowAny for list/retrieve, IsAuthenticated for create, IsAdminUser for destroy). Currently only `MediaViewSet` is implemented.
+**Django apps (current structure):**
+- **`content`** — `Post`, `Category`, `Tag` and content sanitization/reading-time pipeline.
+- **`accounts`** — `Author` and related account domain entities.
+- **`media_app`** — media metadata used by posts/admin.
+- **`navigation`** — menu/menu item domain.
+- **`home`** — homepage section/domain entities.
+- **`homeNews`** — public API endpoints.
+- **`painelControle`** — authenticated/admin API endpoints.
+- **`setup`** — integration app used for admin registration/routes/fixtures wiring; `setup/models.py` is an import aggregator for models defined in the domain apps above (it is not the source of truth for all models).
 
 **API URL structure:**
 - `/admin/` — Django admin
@@ -81,7 +86,7 @@ make reset           # Full reset: clean + rebuild + migrate + seed
 - `/api/schema/redoc/` — ReDoc
 - `/setup-rotas/` — Setup app routes (currently empty)
 
-**Key pattern:** Models are defined in `setup` but serializers and views are in `homeNews` (public) and `painelControle` (admin). Both apps import models from `setup.models`.
+**Key pattern:** Domain models live in their own apps (`content`, `accounts`, `media_app`, `navigation`, `home`). API serializers/views are split between `homeNews` (public) and `painelControle` (admin). `setup.models` only centralizes imports for convenience/legacy compatibility.
 
 **Authentication:** Keycloak issues JWTs validated by `djangorestframework-simplejwt` using RS256. The `preferred_username` claim maps to Django's `User.username`. Authors must exist in both Keycloak and Django (linked via `Author.user` OneToOneField to `django.contrib.auth.User`).
 
