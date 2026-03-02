@@ -141,7 +141,7 @@ if not DEBUG:
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'core.authentication.KeycloakJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',  # Por padrão é aberto, fechamos nas Views específicas
@@ -194,9 +194,8 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'username',
     'USER_ID_CLAIM': 'preferred_username',
     'AUTH_HEADER_TYPES': ('Bearer',),
-    # O Keycloak geralmente coloca 'account' no audience, mas às vezes vem vazio.
-    # Se der erro de "Audience", deixe como None por enquanto.
-    'AUDIENCE': 'account',
+    # Em desenvolvimento local, o audience pode variar por client; permitimos override por env.
+    'AUDIENCE': os.getenv('JWT_AUDIENCE') or None,
     'ISSUER': os.getenv(
         'JWT_ISSUER'
     ),  # Ignora validação estrita de URL (evita erro Docker vs Localhost)
