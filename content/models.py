@@ -112,13 +112,19 @@ class Post(models.Model):
         self.reading_time = processed.reading_time
 
     def save(self, *args, **kwargs):
-        self._process_content()
-
         update_fields = kwargs.get('update_fields')
-        if update_fields is not None:
-            fields = set(update_fields)
-            fields.update({'content', 'reading_time'})
-            kwargs['update_fields'] = tuple(fields)
+        is_new = self.pk is None
+        should_process_content = (
+            is_new or update_fields is None or 'content' in update_fields
+        )
+
+        if should_process_content:
+            self._process_content()
+
+            if update_fields is not None:
+                fields = set(update_fields)
+                fields.update({'content', 'reading_time'})
+                kwargs['update_fields'] = tuple(sorted(fields))
 
         super().save(*args, **kwargs)
 

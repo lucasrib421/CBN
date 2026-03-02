@@ -36,6 +36,11 @@ As variaveis de ambiente do container frontend (definidas no `docker-compose.yml
 - `AUTH_KEYCLOAK_ISSUER=http://localhost:8080/realms/cbn`
 - `KEYCLOAK_INTERNAL_URL=http://keycloak:8080`
 
+No backend Django, mantenha audience com padrao seguro:
+
+- `JWT_AUDIENCE=account` (padrao recomendado)
+- Para desabilitar validacao de audience explicitamente (somente debug local), use `JWT_AUDIENCE=none`
+
 ## 5. Vinculo com Django (obrigatorio para autores)
 
 Para um usuario autenticado no Keycloak conseguir atuar como autor no Django:

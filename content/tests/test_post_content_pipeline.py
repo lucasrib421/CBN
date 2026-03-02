@@ -34,6 +34,8 @@ def test_html_sanitizer_preserves_whitelisted_tags_and_attributes():
         '<h2>Titulo</h2>'
         '<p><strong>forte</strong> e <em>italico</em></p>'
         '<a href="https://cbn.com" target="_blank" rel="noopener">site</a>'
+        '<a href="/categoria/politica">interna</a>'
+        '<a href="#topo">anchor</a>'
         '<blockquote>citacao</blockquote>'
     )
 
@@ -44,6 +46,8 @@ def test_html_sanitizer_preserves_whitelisted_tags_and_attributes():
     assert '<em>italico</em>' in sanitized
     assert '<blockquote>citacao</blockquote>' in sanitized
     assert 'href="https://cbn.com"' in sanitized
+    assert 'href="/categoria/politica"' in sanitized
+    assert 'href="#topo"' in sanitized
     assert 'target="_blank"' in sanitized
 
 
@@ -91,3 +95,67 @@ def test_post_save_applies_content_pipeline_automatically():
     assert post.content == '<p>texto inicial</p>'
     assert post.reading_time == 1
 
+
+def test_post_partial_save_without_content_does_not_run_pipeline(monkeypatch: pytest.MonkeyPatch):
+    user = User.objects.create_user(username='post-no-content-update', password='secret')
+    author = Author.objects.create(user=user, name='Autor Sem Conteudo')
+    post = Post.objects.create(
+        title='Post base',
+        subtitle='Sub',
+        slug='post-base',
+        content='<p>texto inicial</p>',
+        author=author,
+        status=PostStatus.DRAFT,
+    )
+
+    original_content = post.content
+    original_reading_time = post.reading_time
+    pipeline_called = False
+
+    def _track_pipeline(_self):
+        nonlocal pipeline_called
+        pipeline_called = True
+
+    monkeypatch.setattr(Post, '_process_content', _track_pipeline)
+
+    post.status = PostStatus.PUBLISHED
+    post.save(update_fields=['status'])
+    post.refresh_from_db()
+
+    assert pipeline_called is False
+    assert post.content == original_content
+    assert post.reading_time == original_reading_time
+    assert post.status == PostStatus.PUBLISHED
+
+
+def test_post_partial_save_with_content_runs_pipeline_and_persists_reading_time(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    user = User.objects.create_user(username='post-content-update', password='secret')
+    author = Author.objects.create(user=user, name='Autor Com Conteudo')
+    post = Post.objects.create(
+        title='Post base 2',
+        subtitle='Sub',
+        slug='post-base-2',
+        content='<p>texto inicial</p>',
+        author=author,
+        status=PostStatus.DRAFT,
+    )
+
+    pipeline_called = False
+
+    def _fake_pipeline(instance: Post):
+        nonlocal pipeline_called
+        pipeline_called = True
+        instance.content = '<p>conteudo sanitizado</p>'
+        instance.reading_time = 5
+
+    monkeypatch.setattr(Post, '_process_content', _fake_pipeline)
+
+    post.content = '<p>conteudo novo</p><script>xss</script>'
+    post.save(update_fields=['content'])
+    post.refresh_from_db()
+
+    assert pipeline_called is True
+    assert post.content == '<p>conteudo sanitizado</p>'
+    assert post.reading_time == 5
