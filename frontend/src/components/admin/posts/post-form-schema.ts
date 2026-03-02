@@ -22,7 +22,7 @@ export const postFormSchema = z.object({
       (value) => extractPlainTextFromRichText(value).length >= MIN_CONTENT_LENGTH,
       `O conteúdo deve ter pelo menos ${MIN_CONTENT_LENGTH} caracteres`,
     ),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+  status: z.enum(['DRAFT', 'REVIEW', 'PUBLISHED', 'ARCHIVED']),
   categories: z.preprocess(
     normalizeCheckboxValues,
     z.array(z.coerce.number()).min(1, 'Selecione pelo menos uma categoria'),

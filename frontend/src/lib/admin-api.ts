@@ -10,6 +10,33 @@ export class AuthError extends Error {
   }
 }
 
+async function parseApiErrorMessage(res: Response): Promise<string> {
+  const raw = await res.text()
+  if (!raw) {
+    return `API error ${res.status}`
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    if (typeof parsed.detail === 'string') {
+      return parsed.detail
+    }
+
+    const firstField = Object.keys(parsed)[0]
+    const firstValue = parsed[firstField]
+    if (Array.isArray(firstValue) && typeof firstValue[0] === 'string') {
+      return `${firstField}: ${firstValue[0]}`
+    }
+    if (typeof firstValue === 'string') {
+      return `${firstField}: ${firstValue}`
+    }
+  } catch {
+    return raw
+  }
+
+  return raw
+}
+
 export async function fetchAdminAPI<T>(
   path: string,
   options?: RequestInit
@@ -38,7 +65,7 @@ export async function fetchAdminAPI<T>(
   }
 
   if (!res.ok) {
-    const error = await res.text()
+    const error = await parseApiErrorMessage(res)
     throw new Error(`API error ${res.status}: ${error}`)
   }
 
@@ -68,7 +95,7 @@ export async function fetchAdminAPIClient<T>(
   })
 
   if (!res.ok) {
-    const error = await res.text()
+    const error = await parseApiErrorMessage(res)
     throw new Error(`API error ${res.status}: ${error}`)
   }
 
