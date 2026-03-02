@@ -25,14 +25,11 @@ export default async function globalSetup(): Promise<void> {
   const venvPython = path.join(repoRoot, '.venv-pr', 'bin', 'python')
   const pythonInterpreter =
     process.env.E2E_PYTHON || (fs.existsSync(venvPython) ? venvPython : 'python3')
-  const composeUpCmd =
-    process.env.E2E_SKIP_BUILD === '1'
-      ? 'docker compose up -d -V db redis keycloak api frontend'
-      : 'docker compose up -d --build -V db redis keycloak api frontend'
 
-  execSync(composeUpCmd, {
+  execSync('make e2e-up', {
     cwd: repoRoot,
     stdio: 'inherit',
+    env: process.env,
   })
 
   await waitForUrl('http://localhost:8080/realms/master/.well-known/openid-configuration')
