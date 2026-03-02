@@ -1,12 +1,14 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils import timezone
 
 from content.services.post_content_pipeline import get_default_post_content_pipeline
 
 
 class PostStatus(models.TextChoices):
     DRAFT = 'DRAFT', 'Rascunho'
+    REVIEW = 'REVIEW', 'Em revisão'
     PUBLISHED = 'PUBLISHED', 'Publicado'
     ARCHIVED = 'ARCHIVED', 'Arquivado'
 
@@ -54,7 +56,10 @@ class Tag(models.Model):
 class Post(models.Model):
     class PostQuerySet(models.QuerySet):
         def published(self):
-            return self.filter(status=PostStatus.PUBLISHED)
+            now = timezone.now()
+            return self.filter(status=PostStatus.PUBLISHED).filter(
+                models.Q(published_at__isnull=True) | models.Q(published_at__lte=now)
+            )
 
         def by_category(self, slug):
             return self.filter(categories__slug=slug)
@@ -114,9 +119,7 @@ class Post(models.Model):
     def save(self, *args, **kwargs):
         update_fields = kwargs.get('update_fields')
         is_new = self.pk is None
-        should_process_content = (
-            is_new or update_fields is None or 'content' in update_fields
-        )
+        should_process_content = is_new or update_fields is None or 'content' in update_fields
 
         if should_process_content:
             self._process_content()
@@ -130,3 +133,38 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PostStatusTransition(models.Model):
+    post = models.ForeignKey(
+        'content.Post',
+        on_delete=models.CASCADE,
+        related_name='status_transitions',
+    )
+    from_status = models.CharField(max_length=20, choices=PostStatus.choices)
+    to_status = models.CharField(max_length=20, choices=PostStatus.choices)
+    changed_by = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='post_status_transitions',
+    )
+    actor_role = models.ForeignKey(
+        'accounts.Role',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='post_status_transitions',
+    )
+    changed_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    published_at_snapshot = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'post_status_transition'
+        ordering = ['-changed_at']
+        verbose_name = 'Transição de status do post'
+        verbose_name_plural = 'Transições de status dos posts'
+
+    def __str__(self) -> str:
+        return f'{self.post_id}: {self.from_status} -> {self.to_status}'
