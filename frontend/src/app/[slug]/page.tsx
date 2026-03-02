@@ -2,8 +2,8 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import DOMPurify from 'isomorphic-dompurify';
 import { fetchAPI } from '@/lib/api';
+import { sanitizeRichTextHtml } from '@/lib/rich-text-policy';
 import type { PostDetail } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -144,7 +144,7 @@ export default async function PostPage({ params }: PageProps) {
       {/* Content */}
       <div
         className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-a:text-red-600"
-        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+        dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(post.content) }}
       />
 
       {/* Tags */}

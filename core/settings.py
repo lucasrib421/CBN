@@ -141,7 +141,7 @@ if not DEBUG:
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'core.authentication.KeycloakJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',  # Por padrão é aberto, fechamos nas Views específicas
@@ -178,6 +178,11 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 from datetime import timedelta
 
+_jwt_audience_raw = os.getenv('JWT_AUDIENCE', 'account')
+JWT_AUDIENCE = (
+    None if _jwt_audience_raw.strip().lower() in {'', 'none', 'null'} else _jwt_audience_raw
+)
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -194,9 +199,8 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'username',
     'USER_ID_CLAIM': 'preferred_username',
     'AUTH_HEADER_TYPES': ('Bearer',),
-    # O Keycloak geralmente coloca 'account' no audience, mas às vezes vem vazio.
-    # Se der erro de "Audience", deixe como None por enquanto.
-    'AUDIENCE': 'account',
+    # Default seguro: exige audience "account". Para desabilitar explicitamente, use JWT_AUDIENCE=none|null|''
+    'AUDIENCE': JWT_AUDIENCE,
     'ISSUER': os.getenv(
         'JWT_ISSUER'
     ),  # Ignora validação estrita de URL (evita erro Docker vs Localhost)

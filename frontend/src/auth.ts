@@ -1,17 +1,36 @@
 import NextAuth from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
 
-const keycloakIssuer = process.env.AUTH_KEYCLOAK_ISSUER!
-const internalKeycloak = process.env.KEYCLOAK_INTERNAL_URL || 'http://keycloak:8080'
-const realm = 'cbn'
+const publicKeycloakIssuer = process.env.AUTH_KEYCLOAK_ISSUER!
+const inferredRealm = (() => {
+  try {
+    const [, parsedRealm] = new URL(publicKeycloakIssuer).pathname.match(/\/realms\/([^/]+)/) || []
+    return parsedRealm
+  } catch {
+    return null
+  }
+})()
+const realm = process.env.AUTH_KEYCLOAK_REALM || inferredRealm || 'cbn'
+const internalKeycloak =
+  process.env.KEYCLOAK_INTERNAL_URL ||
+  (() => {
+    try {
+      return new URL(publicKeycloakIssuer).origin
+    } catch {
+      return 'http://keycloak:8080'
+    }
+  })()
+const internalKeycloakIssuer = `${internalKeycloak}/realms/${realm}`
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Keycloak({
       clientId: process.env.AUTH_KEYCLOAK_ID!,
       clientSecret: process.env.AUTH_KEYCLOAK_SECRET!,
-      issuer: keycloakIssuer,
-      // Use internal URLs for server-side token exchange (Docker network)
+      issuer: publicKeycloakIssuer,
+      wellKnown: `${internalKeycloakIssuer}/.well-known/openid-configuration`,
+      // Browser should go through the public issuer, while server-side calls use internal URLs.
+      authorization: `${publicKeycloakIssuer}/protocol/openid-connect/auth`,
       token: `${internalKeycloak}/realms/${realm}/protocol/openid-connect/token`,
       userinfo: `${internalKeycloak}/realms/${realm}/protocol/openid-connect/userinfo`,
     }),
@@ -61,9 +80,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         error: token.error as string | undefined,
       }
     },
-  },
-  pages: {
-    signIn: '/api/auth/signin',
   },
   trustHost: true,
 })

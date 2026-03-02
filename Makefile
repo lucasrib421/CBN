@@ -9,7 +9,7 @@
         migrate makemigrations superuser shell dbshell seed \
         npm-install npm-install-dev lint collectstatic \
         status ps clean reset setup \
-        api-bash front-bash docs check
+        api-bash front-bash docs check e2e-up
 
 .DEFAULT_GOAL := help
 
@@ -74,6 +74,14 @@ setup: ## Primeiro setup completo (build + migrate + seed)
 # ------------------------------------------------------------
 up: ## Sobe todos os containers em background
 	docker compose up -d
+
+e2e-up: ## Sobe stack minima para E2E (usa E2E_SKIP_BUILD=1 e E2E_RECREATE_VOLUMES=1 quando necessario)
+	@set -e; \
+	EXTRA_FLAGS=""; \
+	if [ "$$E2E_SKIP_BUILD" != "1" ]; then EXTRA_FLAGS="$$EXTRA_FLAGS --build"; fi; \
+	if [ "$$E2E_RECREATE_VOLUMES" = "1" ]; then EXTRA_FLAGS="$$EXTRA_FLAGS -V"; fi; \
+	echo "docker compose up -d$$EXTRA_FLAGS db redis keycloak api frontend"; \
+	docker compose up -d $$EXTRA_FLAGS db redis keycloak api frontend
 
 down: ## Para todos os containers
 	docker compose down

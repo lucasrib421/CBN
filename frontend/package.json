@@ -7,10 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@tiptap/extension-link": "^3.10.6",
+    "@tiptap/react": "^3.10.6",
+    "@tiptap/starter-kit": "^3.10.6",
     "isomorphic-dompurify": "^3.0.0",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
@@ -29,6 +34,7 @@
     "@types/node": "^25.3.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.0.0",
+    "@playwright/test": "^1.56.1",
     "@vitejs/plugin-react": "^5.1.4",
     "eslint": "^10",
     "eslint-config-next": "^16.1.6",

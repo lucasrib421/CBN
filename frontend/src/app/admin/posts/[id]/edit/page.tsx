@@ -1,31 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { fetchAdminAPIClient } from '@/lib/admin-api'
+import PostRichTextEditor from '@/components/admin/posts/PostRichTextEditor'
+import { normalizeRelatedIds } from '@/components/admin/posts/post-form-normalizers'
+import { PostFormData, postFormSchema } from '@/components/admin/posts/post-form-schema'
+import { useStableAccessToken } from '@/lib/use-stable-access-token'
 import { Category, Tag, Media, PaginatedResponse, AdminPost } from '@/types'
-
-const schema = z.object({
-  title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres'),
-  subtitle: z.string().optional(),
-  slug: z.string().min(3, 'O slug é obrigatório'),
-  content: z.string().min(10, 'O conteúdo deve ter pelo menos 10 caracteres'),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
-  categories: z.array(z.number()).min(1, 'Selecione pelo menos uma categoria'),
-  tags: z.array(z.number()).optional(),
-  cover_image: z.string().optional().nullable(),
-  published_at: z.string().optional().nullable(),
-})
-
-type FormData = z.infer<typeof schema>
 
 export default function EditPostPage(props: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session, status: authStatus } = useSession()
+  const resolveAccessToken = useStableAccessToken(session?.accessToken)
   const [categories, setCategories] = useState<Category[]>([])
   const [tags, setTags] = useState<Tag[]>([])
   const [mediaList, setMediaList] = useState<Media[]>([])
@@ -41,20 +31,27 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
 
   const {
     register,
+    control,
     handleSubmit,
     watch,
     reset,
     formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  } = useForm<PostFormData>({
+    resolver: zodResolver(postFormSchema),
+    defaultValues: {
+      content: '<p></p>',
+      status: 'DRAFT',
+      categories: [],
+      tags: [],
+    },
   })
 
-  const status = watch('status')
+  const postStatus = watch('status')
 
   // Fetch data
   useEffect(() => {
     async function loadData() {
-      if (!session?.accessToken || !postId) return
+      if (!postId || authStatus !== 'authenticated' || !session?.accessToken) return
 
       try {
         const [catsRes, tagsRes, mediaRes, postRes] = await Promise.all([
@@ -71,7 +68,7 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
           title: postRes.title,
           subtitle: postRes.subtitle || '',
           slug: postRes.slug,
-          content: postRes.content,
+          content: postRes.content || '<p></p>',
           status: postRes.status as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
           published_at: postRes.published_at ? postRes.published_at.slice(0, 16) : null,
           categories: postRes.categories?.map((c) => c.id) || [],
@@ -86,21 +83,23 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
       }
     }
     loadData()
-  }, [session, postId, reset])
+  }, [authStatus, postId, reset, session?.accessToken])
 
-  const onSubmit = async (data: FormData) => {
-    if (!session?.accessToken || !postId) return
+  const onSubmit = async (data: PostFormData) => {
+    if (!postId) return
     setIsLoading(true)
     setSubmitError(null)
 
     try {
+      const accessToken = await resolveAccessToken()
       const apiData = {
         ...data,
+        categories: normalizeRelatedIds(data.categories),
         cover_image: data.cover_image ? parseInt(data.cover_image) : null,
-        tags: data.tags || [],
+        tags: normalizeRelatedIds(data.tags),
       }
 
-      await fetchAdminAPIClient(`/posts/${postId}/`, session.accessToken, {
+      await fetchAdminAPIClient(`/posts/${postId}/`, accessToken, {
         method: 'PUT',
         body: JSON.stringify(apiData),
       })
@@ -164,14 +163,21 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
 
         {/* Content */}
         <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700">Conteúdo</label>
-          <textarea
-            id="content"
-            {...register('content')}
-            rows={10}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-          />
-          {errors.content && <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>}
+          <label className="block text-sm font-medium text-gray-700">Conteúdo</label>
+          <div className="mt-1">
+            <Controller
+              control={control}
+              name="content"
+              render={({ field }) => (
+                <PostRichTextEditor
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.content?.message}
+                />
+              )}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -190,7 +196,7 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
           </div>
 
           {/* Published At */}
-          {status === 'PUBLISHED' && (
+          {postStatus === 'PUBLISHED' && (
             <div>
               <label htmlFor="published_at" className="block text-sm font-medium text-gray-700">Data de Publicação</label>
               <input

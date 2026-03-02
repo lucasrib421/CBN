@@ -109,7 +109,6 @@ export interface AdminPostWrite {
   content: string;
   status: string;
   published_at?: string | null;
-  reading_time?: number | null;
   categories: number[];
   tags: number[];
   cover_image?: number | null;

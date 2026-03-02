@@ -2,6 +2,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 
+from content.services.post_content_pipeline import get_default_post_content_pipeline
+
 
 class PostStatus(models.TextChoices):
     DRAFT = 'DRAFT', 'Rascunho'
@@ -103,6 +105,28 @@ class Post(models.Model):
     def clean(self):
         if self.pk and not self.categories.exists():
             raise ValidationError({'categories': 'Post precisa ter pelo menos uma categoria.'})
+
+    def _process_content(self) -> None:
+        processed = get_default_post_content_pipeline().process(self.content)
+        self.content = processed.sanitized_html
+        self.reading_time = processed.reading_time
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        is_new = self.pk is None
+        should_process_content = (
+            is_new or update_fields is None or 'content' in update_fields
+        )
+
+        if should_process_content:
+            self._process_content()
+
+            if update_fields is not None:
+                fields = set(update_fields)
+                fields.update({'content', 'reading_time'})
+                kwargs['update_fields'] = tuple(sorted(fields))
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
