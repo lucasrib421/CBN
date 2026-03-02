@@ -56,3 +56,17 @@ def test_resolve_editorial_role_falls_back_to_author_role():
     assert mapped.role.slug == REPORTER_ROLE_SLUG
     assert mapped.source == 'author'
     assert mapped.can_publish_directly is False
+
+
+def test_resolve_editorial_role_allows_staff_override_without_author_role():
+    _seed_roles()
+    staff_user = User.objects.create_user(
+        username='staff-editor',
+        password='secret',
+        is_staff=True,
+    )
+
+    mapped = resolve_editorial_role(user=staff_user, token_payload=None)
+
+    assert mapped.source == 'staff'
+    assert mapped.can_publish_directly is True

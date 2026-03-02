@@ -85,3 +85,18 @@ def test_reporter_cannot_edit_published_at_of_published_post():
             actor=actor,
             published_at_changed=True,
         )
+
+
+def test_non_published_status_rejects_explicit_published_at():
+    _seed_roles()
+    service = EditorialWorkflowService()
+    actor = _actor('editor-chefe')
+
+    with pytest.raises(InvalidEditorialTransitionError):
+        service.validate_transition(
+            current_status=PostStatus.DRAFT,
+            target_status=PostStatus.REVIEW,
+            published_at=timezone.now() + timedelta(hours=1),
+            actor=actor,
+            published_at_changed=True,
+        )

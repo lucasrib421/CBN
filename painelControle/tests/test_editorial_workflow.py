@@ -119,3 +119,18 @@ def test_editorial_flow_persists_audit_history_for_publish_and_unpublish():
     assert (PostStatus.DRAFT, PostStatus.REVIEW) in transitions
     assert (PostStatus.REVIEW, PostStatus.PUBLISHED) in transitions
     assert (PostStatus.PUBLISHED, PostStatus.DRAFT) in transitions
+
+
+def test_api_rejects_published_at_for_non_published_status():
+    editor_client = _client_with_role(
+        username='editor-published-at',
+        role_slug='editor-chefe',
+        role_name='Editor Chefe',
+    )
+    payload = _base_payload(slug='published-at-invalid', status=PostStatus.REVIEW)
+    payload['published_at'] = '2026-03-10T10:00:00-03:00'
+
+    response = editor_client.post('/api/v1/painel/posts/', payload, format='json')
+
+    assert response.status_code == 400
+    assert 'published_at só pode ser definido' in str(response.json()['status'][0])

@@ -38,9 +38,12 @@ class ResolvedEditorialRole:
     role: Role | None
     source: str
     claim_role_slugs: tuple[str, ...]
+    is_staff_override: bool = False
 
     @property
     def can_publish_directly(self) -> bool:
+        if self.is_staff_override:
+            return True
         if self.role is None:
             return False
         return self.role.slug == EDITOR_IN_CHIEF_ROLE_SLUG
@@ -103,6 +106,15 @@ def resolve_editorial_role(
     mapped_slugs = sorted(
         {_CLAIM_ROLE_ALIASES[role] for role in claim_roles if role in _CLAIM_ROLE_ALIASES}
     )
+
+    if user is not None and (user.is_staff or user.is_superuser):
+        staff_role = Role.objects.filter(slug=EDITOR_IN_CHIEF_ROLE_SLUG).first()
+        return ResolvedEditorialRole(
+            role=staff_role,
+            source='staff',
+            claim_role_slugs=tuple(mapped_slugs),
+            is_staff_override=True,
+        )
 
     if mapped_slugs:
         mapped_roles = list(Role.objects.filter(slug__in=mapped_slugs))

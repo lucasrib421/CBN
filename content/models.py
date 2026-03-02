@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
@@ -144,7 +145,7 @@ class PostStatusTransition(models.Model):
     from_status = models.CharField(max_length=20, choices=PostStatus.choices)
     to_status = models.CharField(max_length=20, choices=PostStatus.choices)
     changed_by = models.ForeignKey(
-        'auth.User',
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

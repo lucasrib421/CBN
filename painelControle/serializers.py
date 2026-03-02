@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from django.db import transaction
 from rest_framework import serializers
 
@@ -11,6 +13,14 @@ from content.services.editorial_workflow import (
 from home.models import HomeSection, HomeSectionItem
 from media_app.models import Media
 from navigation.models import Menu, MenuItem
+
+
+@dataclass(frozen=True)
+class _WorkflowTransitionContext:
+    from_status: str
+    to_status: str
+    actor: ResolvedEditorialRole
+    should_audit: bool
 
 
 class PainelMediaSerializer(serializers.ModelSerializer):
@@ -63,7 +73,7 @@ class PostReadSerializer(serializers.ModelSerializer):
 
 
 class PostWriteSerializer(serializers.ModelSerializer):
-    _workflow_transition_context: dict[str, object] | None = None
+    _workflow_transition_context: _WorkflowTransitionContext | None = None
 
     class Meta:
         model = Post
@@ -124,24 +134,20 @@ class PostWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'status': str(exc)})
 
         attrs['published_at'] = result.normalized_published_at
-        self._workflow_transition_context = {
-            'from_status': current_status,
-            'to_status': target_status,
-            'should_audit': result.should_audit,
-            'actor': actor,
-        }
+        self._workflow_transition_context = _WorkflowTransitionContext(
+            from_status=current_status,
+            to_status=target_status,
+            should_audit=result.should_audit,
+            actor=actor,
+        )
         return attrs
 
     def _record_transition_if_needed(self, post: Post) -> None:
-        context = self._workflow_transition_context or {}
-        should_audit = bool(context.get('should_audit'))
-        if not should_audit:
+        context = self._workflow_transition_context
+        if context is None or not context.should_audit:
             return
 
         workflow = get_default_editorial_workflow_service()
-        actor = context.get('actor')
-        if not isinstance(actor, ResolvedEditorialRole):
-            return
 
         request = self.context.get('request')
         user = getattr(request, 'user', None)
@@ -150,10 +156,10 @@ class PostWriteSerializer(serializers.ModelSerializer):
 
         workflow.record_transition(
             post=post,
-            from_status=str(context['from_status']),
-            to_status=str(context['to_status']),
+            from_status=context.from_status,
+            to_status=context.to_status,
             user=user,
-            actor_role=actor.role,
+            actor_role=context.actor.role,
         )
 
     @transaction.atomic

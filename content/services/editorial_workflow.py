@@ -80,6 +80,15 @@ class EditorialWorkflowService:
                     f'Transição não permitida: {current_status} -> {target_status}.'
                 )
 
+        if (
+            published_at_changed
+            and target_status != PostStatus.PUBLISHED
+            and published_at is not None
+        ):
+            raise InvalidEditorialTransitionError(
+                'O campo published_at só pode ser definido para posts publicados.'
+            )
+
         transition_touches_publication = (
             current_status == PostStatus.PUBLISHED or target_status == PostStatus.PUBLISHED
         )
