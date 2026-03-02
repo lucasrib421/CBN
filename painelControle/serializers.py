@@ -66,7 +66,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
             'content',
             'status',
             'published_at',
-            'reading_time',
             'categories',
             'tags',
             'cover_image',
