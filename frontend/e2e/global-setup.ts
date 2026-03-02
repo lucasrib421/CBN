@@ -7,9 +7,10 @@ async function waitForUrl(url: string, timeoutMs = 180_000): Promise<void> {
   while (Date.now() < deadline) {
     try {
       const response = await fetch(url)
-      if (response.ok || response.status < 500) {
+      if (response.ok) {
         return
       }
+      lastError = `Unexpected status ${response.status}`
     } catch (error) {
       lastError = error
     }

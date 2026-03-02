@@ -7,20 +7,14 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { fetchAdminAPIClient } from '@/lib/admin-api'
 import PostRichTextEditor from '@/components/admin/posts/PostRichTextEditor'
+import { normalizeRelatedIds } from '@/components/admin/posts/post-form-normalizers'
 import { PostFormData, postFormSchema } from '@/components/admin/posts/post-form-schema'
 import { useStableAccessToken } from '@/lib/use-stable-access-token'
 import { Category, Tag, Media, PaginatedResponse, AdminPost } from '@/types'
 
-function normalizeRelatedIds(values: number[] | undefined): number[] {
-  if (!values || values.length === 0) return []
-  return values
-    .map((value) => Number(value))
-    .filter((value) => Number.isInteger(value) && value > 0)
-}
-
 export default function EditPostPage(props: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session, status: authStatus } = useSession()
   const resolveAccessToken = useStableAccessToken(session?.accessToken)
   const [categories, setCategories] = useState<Category[]>([])
   const [tags, setTags] = useState<Tag[]>([])
@@ -52,20 +46,19 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
     },
   })
 
-  const status = watch('status')
+  const postStatus = watch('status')
 
   // Fetch data
   useEffect(() => {
     async function loadData() {
-      if (!postId) return
+      if (!postId || authStatus !== 'authenticated' || !session?.accessToken) return
 
       try {
-        const accessToken = await resolveAccessToken()
         const [catsRes, tagsRes, mediaRes, postRes] = await Promise.all([
-          fetchAdminAPIClient<PaginatedResponse<Category>>('/categories/', accessToken),
-          fetchAdminAPIClient<PaginatedResponse<Tag>>('/tags/', accessToken),
-          fetchAdminAPIClient<PaginatedResponse<Media>>('/media/', accessToken),
-          fetchAdminAPIClient<AdminPost>(`/posts/${postId}/`, accessToken),
+          fetchAdminAPIClient<PaginatedResponse<Category>>('/categories/', session.accessToken),
+          fetchAdminAPIClient<PaginatedResponse<Tag>>('/tags/', session.accessToken),
+          fetchAdminAPIClient<PaginatedResponse<Media>>('/media/', session.accessToken),
+          fetchAdminAPIClient<AdminPost>(`/posts/${postId}/`, session.accessToken),
         ])
         setCategories(catsRes.results)
         setTags(tagsRes.results)
@@ -90,7 +83,7 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
       }
     }
     loadData()
-  }, [postId, reset, resolveAccessToken])
+  }, [authStatus, postId, reset, session?.accessToken])
 
   const onSubmit = async (data: PostFormData) => {
     if (!postId) return
@@ -203,7 +196,7 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
           </div>
 
           {/* Published At */}
-          {status === 'PUBLISHED' && (
+          {postStatus === 'PUBLISHED' && (
             <div>
               <label htmlFor="published_at" className="block text-sm font-medium text-gray-700">Data de Publicação</label>
               <input

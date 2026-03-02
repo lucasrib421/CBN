@@ -1,9 +1,25 @@
 import NextAuth from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
 
-const internalKeycloak = process.env.KEYCLOAK_INTERNAL_URL || 'http://keycloak:8080'
 const publicKeycloakIssuer = process.env.AUTH_KEYCLOAK_ISSUER!
-const realm = 'cbn'
+const inferredRealm = (() => {
+  try {
+    const [, parsedRealm] = new URL(publicKeycloakIssuer).pathname.match(/\/realms\/([^/]+)/) || []
+    return parsedRealm
+  } catch {
+    return null
+  }
+})()
+const realm = process.env.AUTH_KEYCLOAK_REALM || inferredRealm || 'cbn'
+const internalKeycloak =
+  process.env.KEYCLOAK_INTERNAL_URL ||
+  (() => {
+    try {
+      return new URL(publicKeycloakIssuer).origin
+    } catch {
+      return 'http://keycloak:8080'
+    }
+  })()
 const internalKeycloakIssuer = `${internalKeycloak}/realms/${realm}`
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
