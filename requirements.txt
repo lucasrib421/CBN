@@ -14,7 +14,7 @@ Markdown==3.10.2
 packaging==26.0
 psycopg==3.3.3
 psycopg-binary==3.3.3
-python-dotenv==1.2.1
+python-dotenv==1.2.2
 PyYAML==6.0.3
 referencing==0.37.0
 rpds-py==0.30.0
