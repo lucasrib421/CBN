@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 
-from accounts.models import Author
+from accounts.models import Author, Role
 from content.models import Category, Post, PostStatus, Tag
 
 
@@ -11,7 +11,11 @@ pytestmark = pytest.mark.django_db
 
 def _authenticated_client() -> tuple[APIClient, User, Author]:
     user = User.objects.create_user(username='editor-e2e', password='secret')
-    author = Author.objects.create(user=user, name='Editor E2E')
+    role, _ = Role.objects.get_or_create(
+        slug='editor-chefe',
+        defaults={'name': 'Editor Chefe'},
+    )
+    author = Author.objects.create(user=user, name='Editor E2E', role=role)
     client = APIClient()
     client.force_authenticate(user=user)
     return client, user, author
@@ -86,4 +90,3 @@ def test_post_create_and_update_flow_sanitizes_html_and_sets_reading_time():
     retrieve_data = retrieve_response.json()
     assert retrieve_data['content'] == post.content
     assert retrieve_data['reading_time'] == post.reading_time
-

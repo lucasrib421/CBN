@@ -7,10 +7,18 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { fetchAdminAPIClient } from '@/lib/admin-api'
 import PostRichTextEditor from '@/components/admin/posts/PostRichTextEditor'
-import { normalizeRelatedIds } from '@/components/admin/posts/post-form-normalizers'
+import { buildPostWritePayload } from '@/components/admin/posts/post-form-payload'
 import { PostFormData, postFormSchema } from '@/components/admin/posts/post-form-schema'
+import { buildStatusOptions, STATUS_LABELS } from '@/components/admin/posts/workflow'
 import { useStableAccessToken } from '@/lib/use-stable-access-token'
-import { Category, Tag, Media, PaginatedResponse, AdminPost } from '@/types'
+import {
+  AdminPost,
+  AvailableTransitionsResponse,
+  Category,
+  Media,
+  PaginatedResponse,
+  Tag,
+} from '@/types'
 
 export default function EditPostPage(props: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -19,6 +27,9 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
   const [categories, setCategories] = useState<Category[]>([])
   const [tags, setTags] = useState<Tag[]>([])
   const [mediaList, setMediaList] = useState<Media[]>([])
+  const [statusOptions, setStatusOptions] = useState(
+    buildStatusOptions('DRAFT', ['REVIEW', 'PUBLISHED', 'ARCHIVED']),
+  )
   const [isLoading, setIsLoading] = useState(true)
   const [submitError, setSubmitError] = useState<string | null>(null)
   
@@ -35,6 +46,7 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<PostFormData>({
     resolver: zodResolver(postFormSchema),
@@ -60,16 +72,23 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
           fetchAdminAPIClient<PaginatedResponse<Media>>('/media/', session.accessToken),
           fetchAdminAPIClient<AdminPost>(`/posts/${postId}/`, session.accessToken),
         ])
+        const transitionsRes = await fetchAdminAPIClient<AvailableTransitionsResponse>(
+          `/posts/available-transitions/?status=${postRes.status}`,
+          session.accessToken,
+        )
         setCategories(catsRes.results)
         setTags(tagsRes.results)
         setMediaList(mediaRes.results)
+        setStatusOptions(
+          buildStatusOptions(postRes.status, transitionsRes.allowed_transitions, transitionsRes.labels),
+        )
 
         reset({
           title: postRes.title,
           subtitle: postRes.subtitle || '',
           slug: postRes.slug,
           content: postRes.content || '<p></p>',
-          status: postRes.status as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
+          status: postRes.status,
           published_at: postRes.published_at ? postRes.published_at.slice(0, 16) : null,
           categories: postRes.categories?.map((c) => c.id) || [],
           tags: postRes.tags?.map((t) => t.id) || [],
@@ -85,6 +104,12 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
     loadData()
   }, [authStatus, postId, reset, session?.accessToken])
 
+  useEffect(() => {
+    if (postStatus !== 'PUBLISHED') {
+      setValue('published_at', null)
+    }
+  }, [postStatus, setValue])
+
   const onSubmit = async (data: PostFormData) => {
     if (!postId) return
     setIsLoading(true)
@@ -92,12 +117,7 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
 
     try {
       const accessToken = await resolveAccessToken()
-      const apiData = {
-        ...data,
-        categories: normalizeRelatedIds(data.categories),
-        cover_image: data.cover_image ? parseInt(data.cover_image) : null,
-        tags: normalizeRelatedIds(data.tags),
-      }
+      const apiData = buildPostWritePayload(data)
 
       await fetchAdminAPIClient(`/posts/${postId}/`, accessToken, {
         method: 'PUT',
@@ -189,9 +209,11 @@ export default function EditPostPage(props: { params: Promise<{ id: string }> })
               {...register('status')}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
             >
-              <option value="DRAFT">Rascunho</option>
-              <option value="PUBLISHED">Publicado</option>
-              <option value="ARCHIVED">Arquivado</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label || STATUS_LABELS[option.value]}
+                </option>
+              ))}
             </select>
           </div>
 

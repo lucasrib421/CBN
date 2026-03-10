@@ -1,8 +1,12 @@
-from rest_framework import filters, permissions, viewsets
+from rest_framework import filters, permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
-from content.models import Category, Post, Tag
+from accounts.services.editorial_roles import resolve_editorial_role
+from content.models import Category, Post, PostStatus, Tag
+from content.services.editorial_workflow import get_default_editorial_workflow_service
 from home.models import HomeSection, HomeSectionItem
 from media_app.models import Media
 from navigation.models import Menu, MenuItem
@@ -81,6 +85,41 @@ class PostViewSet(BaseAuthenticatedViewSet):
 
     def perform_update(self, serializer):
         serializer.save(author=serializer.instance.author)
+
+    @action(detail=False, methods=['get'], url_path='available-transitions')
+    def available_transitions(self, request):
+        current_status = request.query_params.get('status', PostStatus.DRAFT)
+        if current_status not in PostStatus.values:
+            return Response(
+                {'detail': f'Status inválido: {current_status}.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        token = getattr(request, 'auth', None)
+        token_payload = getattr(token, 'payload', None)
+        if not isinstance(token_payload, dict):
+            token_payload = None
+
+        actor = resolve_editorial_role(
+            user=request.user,
+            token_payload=token_payload,
+        )
+        workflow = get_default_editorial_workflow_service()
+        allowed = workflow.allowed_transitions(
+            current_status=current_status,
+            actor=actor,
+        )
+
+        return Response(
+            {
+                'current_status': current_status,
+                'allowed_transitions': list(allowed),
+                'labels': workflow.as_label_map(),
+                'effective_role': actor.role.slug if actor.role else None,
+                'role_source': actor.source,
+                'can_publish_directly': actor.can_publish_directly,
+            }
+        )
 
 
 class HomeSectionViewSet(BaseAuthenticatedViewSet):
