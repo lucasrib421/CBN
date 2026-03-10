@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { fetchAdminAPIClient } from '@/lib/admin-api'
 import PostRichTextEditor from '@/components/admin/posts/PostRichTextEditor'
-import { normalizeRelatedIds } from '@/components/admin/posts/post-form-normalizers'
+import { buildPostWritePayload } from '@/components/admin/posts/post-form-payload'
 import { PostFormData, postFormSchema } from '@/components/admin/posts/post-form-schema'
 import { buildStatusOptions, STATUS_LABELS } from '@/components/admin/posts/workflow'
 import { useStableAccessToken } from '@/lib/use-stable-access-token'
@@ -96,19 +96,19 @@ export default function NewPostPage() {
     loadData()
   }, [authStatus, session?.accessToken])
 
+  useEffect(() => {
+    if (postStatus !== 'PUBLISHED') {
+      setValue('published_at', null)
+    }
+  }, [postStatus, setValue])
+
   const onSubmit = async (data: PostFormData) => {
     setIsLoading(true)
     setSubmitError(null)
 
     try {
       const accessToken = await resolveAccessToken()
-      // Transform form data for API
-      const apiData = {
-        ...data,
-        categories: normalizeRelatedIds(data.categories),
-        cover_image: data.cover_image ? parseInt(data.cover_image) : null,
-        tags: normalizeRelatedIds(data.tags),
-      }
+      const apiData = buildPostWritePayload(data)
 
       await fetchAdminAPIClient('/posts/', accessToken, {
         method: 'POST',
