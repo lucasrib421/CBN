@@ -4,7 +4,8 @@ import type { Category, PaginatedResponse, PostSummary } from '@/types';
 import PostCard from '@/components/PostCard';
 import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300; // Atualiza a cada 5 minutos (300 segundos)
+//export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string }>;

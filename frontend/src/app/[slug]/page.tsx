@@ -6,7 +6,12 @@ import { fetchAPI } from '@/lib/api';
 import { sanitizeRichTextHtml } from '@/lib/rich-text-policy';
 import type { PostDetail } from '@/types';
 
-export const dynamic = 'force-dynamic';
+//export const dynamic = 'force-dynamic';
+
+// 🚀 A MÁGICA DO FALLBACK AQUI:
+// Se o webhook do Django falhar, o Next.js vai revalidar a página sozinho 
+// após 86400 segundos (24 horas) quando receber um novo acesso.
+export const revalidate = 86400;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -14,7 +19,11 @@ interface PageProps {
 
 async function getPost(slug: string): Promise<PostDetail | null> {
   try {
-    return await fetchAPI<PostDetail>(`/posts/${slug}/`);
+    // Agora estamos forçando o cache e colando a "etiqueta" (tag) na requisição!
+    return await fetchAPI<PostDetail>(`/posts/${slug}/`, {
+      cache: 'force-cache',
+      next: { tags: [`post-${slug}`] },
+    });
   } catch {
     return null;
   }

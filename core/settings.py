@@ -239,3 +239,7 @@ CACHES = {
         'TIMEOUT': 300,
     }
 }
+
+# Configurações para Revalidação de Páginas Estáticas no Next.js
+NEXTJS_URL = os.getenv("NEXTJS_URL", "http://localhost:3000")
+REVALIDATION_SECRET = os.getenv("REVALIDATION_SECRET", "")
