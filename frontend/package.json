@@ -16,7 +16,7 @@
     "@tiptap/extension-link": "^3.10.6",
     "@tiptap/react": "^3.10.6",
     "@tiptap/starter-kit": "^3.10.6",
-    "isomorphic-dompurify": "^3.0.0",
+    "isomorphic-dompurify": "^3.3.0",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
     "react": "^19.0.0",
