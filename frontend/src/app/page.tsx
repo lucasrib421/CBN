@@ -2,7 +2,8 @@ import { fetchAPI } from '@/lib/api';
 import type { HomeSection as HomeSectionType } from '@/types';
 import HomeSection from '@/components/HomeSection';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60; // O Next.js vai recriar a Home no background a cada 60 segundos
+//export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   let sections: HomeSectionType[] = [];
