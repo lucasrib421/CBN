@@ -152,7 +152,7 @@ def ensure_django_entities() -> None:
 
     from django.contrib.auth.models import User
 
-    from accounts.models import Author
+    from accounts.models import Author, Role
     from content.models import Category, Tag
 
     user, created = User.objects.get_or_create(
@@ -166,13 +166,25 @@ def ensure_django_entities() -> None:
         user.set_password('unused-local-password')
         user.save(update_fields=['password'])
 
-    Author.objects.get_or_create(
+    editor_role, _ = Role.objects.get_or_create(
+        slug='editor-chefe',
+        defaults={
+            'name': 'Editor Chefe',
+            'description': 'Permite publicar diretamente no workflow editorial.',
+        },
+    )
+
+    author, _ = Author.objects.get_or_create(
         user=user,
         defaults={
             'name': 'E2E Editor',
             'bio': 'Perfil de autor para testes E2E.',
+            'role': editor_role,
         },
     )
+    if author.role_id != editor_role.id:
+        author.role = editor_role
+        author.save(update_fields=['role'])
 
     Category.objects.get_or_create(
         slug='e2e-categoria',

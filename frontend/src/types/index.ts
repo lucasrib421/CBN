@@ -6,6 +6,8 @@ export interface Media {
   image_type: string;
 }
 
+export type EditorialStatus = 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'ARCHIVED'
+
 export interface Author {
   id: string; // UUID
   name: string;
@@ -90,7 +92,7 @@ export interface AdminPost {
   subtitle: string;
   slug: string;
   content: string;
-  status: string;
+  status: EditorialStatus;
   published_at: string | null;
   reading_time: number | null;
   created_at: string;
@@ -107,11 +109,20 @@ export interface AdminPostWrite {
   subtitle?: string;
   slug: string;
   content: string;
-  status: string;
+  status: EditorialStatus;
   published_at?: string | null;
   categories: number[];
   tags: number[];
   cover_image?: number | null;
+}
+
+export interface AvailableTransitionsResponse {
+  current_status: EditorialStatus;
+  allowed_transitions: EditorialStatus[];
+  labels: Record<string, string>;
+  effective_role: string | null;
+  role_source: string;
+  can_publish_directly: boolean;
 }
 
 export interface AdminHomeSection {

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from content.models import Category, Post, Tag
+from content.models import Category, Post, PostStatusTransition, Tag
 
 
 @admin.register(Post)
@@ -25,3 +25,19 @@ class CategoryAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug')
     search_fields = ('name',)
+
+
+@admin.register(PostStatusTransition)
+class PostStatusTransitionAdmin(admin.ModelAdmin):
+    list_display = ('post', 'from_status', 'to_status', 'changed_by', 'actor_role', 'changed_at')
+    list_filter = ('from_status', 'to_status', 'actor_role')
+    search_fields = ('post__title', 'changed_by__username')
+    readonly_fields = (
+        'post',
+        'from_status',
+        'to_status',
+        'changed_by',
+        'actor_role',
+        'changed_at',
+        'published_at_snapshot',
+    )

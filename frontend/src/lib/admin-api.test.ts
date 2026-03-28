@@ -69,6 +69,18 @@ test('fetchAdminAPIClient throws on non-ok response', async () => {
   ).rejects.toThrow('API error 403: Forbidden');
 });
 
+test('fetchAdminAPIClient surfaces field-level backend validation message', async () => {
+  mockFetch.mockResolvedValueOnce({
+    ok: false,
+    status: 400,
+    text: () => Promise.resolve(JSON.stringify({ status: ['Transição não permitida'] })),
+  });
+
+  await expect(
+    fetchAdminAPIClient('/posts/', 'my-token')
+  ).rejects.toThrow('API error 400: status: Transição não permitida');
+});
+
 test('AuthError has status property', () => {
   const err = new AuthError('Unauthorized', 401);
   expect(err.message).toBe('Unauthorized');

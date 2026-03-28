@@ -81,6 +81,8 @@ export default async function PostsPage(props: {
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       post.status === 'PUBLISHED'
                         ? 'bg-green-100 text-green-800'
+                        : post.status === 'REVIEW'
+                        ? 'bg-blue-100 text-blue-800'
                         : post.status === 'DRAFT'
                         ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-gray-100 text-gray-800'
@@ -88,6 +90,8 @@ export default async function PostsPage(props: {
                   >
                     {post.status === 'PUBLISHED'
                       ? 'Publicado'
+                      : post.status === 'REVIEW'
+                      ? 'Em revisão'
                       : post.status === 'DRAFT'
                       ? 'Rascunho'
                       : 'Arquivado'}

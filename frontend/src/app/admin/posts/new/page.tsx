@@ -7,10 +7,17 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { fetchAdminAPIClient } from '@/lib/admin-api'
 import PostRichTextEditor from '@/components/admin/posts/PostRichTextEditor'
-import { normalizeRelatedIds } from '@/components/admin/posts/post-form-normalizers'
+import { buildPostWritePayload } from '@/components/admin/posts/post-form-payload'
 import { PostFormData, postFormSchema } from '@/components/admin/posts/post-form-schema'
+import { buildStatusOptions, STATUS_LABELS } from '@/components/admin/posts/workflow'
 import { useStableAccessToken } from '@/lib/use-stable-access-token'
-import { Category, Tag, Media, PaginatedResponse } from '@/types'
+import {
+  AvailableTransitionsResponse,
+  Category,
+  Media,
+  PaginatedResponse,
+  Tag,
+} from '@/types'
 
 function generateSlug(title: string): string {
   return title
@@ -28,6 +35,9 @@ export default function NewPostPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [tags, setTags] = useState<Tag[]>([])
   const [mediaList, setMediaList] = useState<Media[]>([])
+  const [statusOptions, setStatusOptions] = useState(
+    buildStatusOptions('DRAFT', ['REVIEW', 'PUBLISHED', 'ARCHIVED']),
+  )
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -64,14 +74,21 @@ export default function NewPostPage() {
       if (authStatus !== 'authenticated' || !session?.accessToken) return
 
       try {
-        const [catsRes, tagsRes, mediaRes] = await Promise.all([
+        const [catsRes, tagsRes, mediaRes, transitionsRes] = await Promise.all([
           fetchAdminAPIClient<PaginatedResponse<Category>>('/categories/', session.accessToken),
           fetchAdminAPIClient<PaginatedResponse<Tag>>('/tags/', session.accessToken),
           fetchAdminAPIClient<PaginatedResponse<Media>>('/media/', session.accessToken),
+          fetchAdminAPIClient<AvailableTransitionsResponse>(
+            '/posts/available-transitions/?status=DRAFT',
+            session.accessToken,
+          ),
         ])
         setCategories(catsRes.results)
         setTags(tagsRes.results)
         setMediaList(mediaRes.results)
+        setStatusOptions(
+          buildStatusOptions('DRAFT', transitionsRes.allowed_transitions, transitionsRes.labels),
+        )
       } catch (err) {
         console.error('Failed to load form data:', err)
       }
@@ -79,19 +96,19 @@ export default function NewPostPage() {
     loadData()
   }, [authStatus, session?.accessToken])
 
+  useEffect(() => {
+    if (postStatus !== 'PUBLISHED') {
+      setValue('published_at', null)
+    }
+  }, [postStatus, setValue])
+
   const onSubmit = async (data: PostFormData) => {
     setIsLoading(true)
     setSubmitError(null)
 
     try {
       const accessToken = await resolveAccessToken()
-      // Transform form data for API
-      const apiData = {
-        ...data,
-        categories: normalizeRelatedIds(data.categories),
-        cover_image: data.cover_image ? parseInt(data.cover_image) : null,
-        tags: normalizeRelatedIds(data.tags),
-      }
+      const apiData = buildPostWritePayload(data)
 
       await fetchAdminAPIClient('/posts/', accessToken, {
         method: 'POST',
@@ -178,9 +195,11 @@ export default function NewPostPage() {
               {...register('status')}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
             >
-              <option value="DRAFT">Rascunho</option>
-              <option value="PUBLISHED">Publicado</option>
-              <option value="ARCHIVED">Arquivado</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label || STATUS_LABELS[option.value]}
+                </option>
+              ))}
             </select>
           </div>
 
